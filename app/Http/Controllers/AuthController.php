@@ -51,6 +51,8 @@ class AuthController extends Controller
                 'msg' => ['The provided credentials are incorrect.'],
             ]);
         }
+        unset($user['code']);
+        $user->info = json_decode($user->info);
      
         return ['token'=>$user->createToken('auth_token')->plainTextToken, 'user'=>$user];
        
@@ -126,6 +128,18 @@ class AuthController extends Controller
     public function user()
     {
         return $user = Auth::user();
+    }
+
+    public function updateUser(Request $request){
+        $user = User::find($request->id);
+           $user->name = $request->name;
+           $user->email = $request->email;
+           $user->info = json_encode($request->info);
+           $user->image = $request->image;
+           $user->save();
+           $user->info = $request->info;
+           
+        return $user;
     }
 
     

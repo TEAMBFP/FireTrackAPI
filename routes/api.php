@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Support\Facades\Password;
+use App\Http\Controllers\IncidentController;
 
 
 
@@ -50,4 +51,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('/logout',[AuthController::class, 'logout']);
     Route::post('/update-user',[AuthController::class, 'updateUser']);
+    Route::post('/report-incident',[IncidentController::class, 'create']);
+    Route::get('/my-incidents',[IncidentController::class, 'my_report_incident']);
 });

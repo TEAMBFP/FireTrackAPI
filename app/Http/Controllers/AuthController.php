@@ -45,7 +45,7 @@ class AuthController extends Controller
         return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
     }
 
-    public function registerAdmin(Request $request)
+    public function adminRegister(Request $request)
     {
        
          $request->validate([
@@ -57,7 +57,8 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'type' => 'admin',
+            'user_type' => 'admin',
+            'info' => json_encode($request->info),
         ]);
         return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
     }
@@ -67,16 +68,17 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
-
-        if($user->type=='admin'){
-            return response()->json(["msg" => 'You are not allowed to login here'],404);
-        }
       
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'msg' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        if($user->user_type=='admin'){
+            return response()->json(["message" => 'You are not allowed to login here'],404);
+        }
+
         unset($user['code']);
         $user->info = json_decode($user->info);
      
@@ -84,19 +86,20 @@ class AuthController extends Controller
        
     }
 
-    public function loginAdmin(Request $request)
+    public function adminLogin(Request $request)
     {
         $user = User::where('email', $request->email)->first();
-
-         if($user->type=='user'){
-            return response()->json(["msg" => 'You are not allowed to login here'],404);
-        }
       
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'msg' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        if($user->user_type=='user'){
+            return response()->json(["message" => 'You are not allowed to login here'],404);
+        }
+
         unset($user['code']);
         $user->info = json_decode($user->info);
      

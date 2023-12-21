@@ -22,8 +22,14 @@ use App\Http\Controllers\IncidentController;
 */
 
 Route::controller(AuthController::class)->group(function () {
+    // USER 
+
     Route::post('/login', 'login');
     Route::post('/register','register');
+
+    // ADMIN AUTH
+    Route::post('/admin-login', 'adminLogin');
+    Route::post('/admin-register','adminRegister');
 });
 
 Route::post('/reset-pass', [ResetPasswordController::class, 'request_reset']);

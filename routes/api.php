@@ -49,10 +49,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user->info = json_decode($user->info);
     return $user;
 });
-
+// TBD USER MIDDLEWARE
 Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('/logout',[AuthController::class, 'logout']);
     Route::post('/update-user',[AuthController::class, 'updateUser']);
     Route::post('/report-incident',[IncidentController::class, 'create']);
     Route::get('/my-incidents',[IncidentController::class, 'my_report_incident']);
+});
+// TBD ADMIN MIDDLEWARE
+Route::group(['middleware' => ['auth:sanctum']], function(){
+   
+    Route::get('/reported-incidents',[IncidentController::class, 'reportedIncidents']);
+    Route::post('/incident-update-status',[IncidentController::class, 'updateStatus']);
+    Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
+
+
 });

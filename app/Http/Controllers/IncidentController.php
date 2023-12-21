@@ -21,8 +21,6 @@ class IncidentController extends Controller
         $incidents = Incident::where('user_id', auth()->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
-        // sort bottom to top 
-
 
         $incidents->map(function($incident){
             unset($incident['user_id']);
@@ -32,6 +30,28 @@ class IncidentController extends Controller
         
         return $incidents;
     }
+
+    public function reportedIncidents () {
+        $incidents = Incident::orderBy('created_at', 'desc')->get();
+        $incidents->map(function($incident){
+            unset($incident['user_id']);
+            return $incident;
+        });
+        return $incidents;
+    }
+
+     public function updateStatus (Request $request){
+        $incident = Incident::find($request->id);
+        $incident->status = $request->status;
+        $incident->save();
+        return $incident;
+     }
+
+     public function deleteIncidenet (Request $request){
+        $incident = Incident::find($request->id);
+        $incident->delete();
+        return $incident;
+     }
 
     /**
      * Show the form for creating a new resource.

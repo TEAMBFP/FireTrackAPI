@@ -26,26 +26,71 @@ class AuthController extends Controller
    
     public function register(Request $request)
     {
-       
+        // defaults to user, requests here coming from mobile app
+        // if($request->type){
+        //     response()->json(["msg" => 'Not Found'],404);
+        // }
          $request->validate([
             'email' => 'required|email|max:50|unique:users',
             'name'=>'required|max:50',
             'password' => 'required|min:8|confirmed'
         ]);
         $user = User::create([
-              'name'=>$request->name,
-           'email'=>$request->email,
-           'password'=>bcrypt($request->password),
-           'info'=>json_encode($request->info)
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'info' => json_encode($request->info),
         ]);
         event(new Registered($user));
         return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
     }
 
+    public function registerAdmin(Request $request)
+    {
+       
+         $request->validate([
+            'email' => 'required|email|max:50|unique:users',
+            'name' => 'required|max:50',
+            'password' => 'required|min:8|confirmed'
+        ]);
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'type' => 'admin',
+        ]);
+        return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
+    }
+    
+
    
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
+
+        if($user->type=='admin'){
+            return response()->json(["msg" => 'You are not allowed to login here'],404);
+        }
+      
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'msg' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+        unset($user['code']);
+        $user->info = json_decode($user->info);
+     
+        return ['token'=>$user->createToken('auth_token')->plainTextToken, 'user'=>$user];
+       
+    }
+
+    public function loginAdmin(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+         if($user->type=='user'){
+            return response()->json(["msg" => 'You are not allowed to login here'],404);
+        }
       
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([

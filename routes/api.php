@@ -45,7 +45,9 @@ Route::get('/email/verify/resend', function (Request $request) {
 })->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    $user =  $request->user();
+    $user->info = json_decode($user->info);
+    return $user;
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function(){

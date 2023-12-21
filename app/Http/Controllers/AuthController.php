@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Storage; // Add this import statement
 
 
 
@@ -135,11 +136,45 @@ class AuthController extends Controller
            $user->name = $request->name;
            $user->email = $request->email;
            $user->info = json_encode($request->info);
-           $user->image = $request->image;
+           $path = null;
+            if ($request->image && strpos($request->image, 'data:image/') !== false) {
+                $image = $request->image;
+                $ext = $this->getImageExt($image);
+               
+                $image = str_replace('data:image/jpg;base64,', '', $image);
+                $image = str_replace('data:image/jpeg;base64,', '', $image);
+                $image = str_replace('data:image/png;base64,', '', $image);
+                
+                $image = str_replace(' ', '+', $image);
+
+                $imageName = $user->email.'-profile'.'.'.$ext;
+                Storage::disk('public')->put($imageName, base64_decode($image));
+                $path = url('/').'/storage/'.$imageName;
+
+            }
+           $user->image = $path ? $path : $request->image;
            $user->save();
            $user->info = $request->info;
            
         return $user;
+    }
+
+    private function getImageExt($image) {
+
+        // Extract the MIME type from the base64 string
+        list($type, $imageData) = explode(';', $image);
+        list(, $mimeType) = explode(':', $type);
+
+        // Map the MIME type to a file extension
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            // Add more mappings if needed
+        ];
+
+        $extension = isset($extensions[$mimeType]) ? $extensions[$mimeType] : null;
+        return $extension;
     }
 
     

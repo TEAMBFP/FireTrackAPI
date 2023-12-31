@@ -64,10 +64,12 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 });
 // TBD ADMIN MIDDLEWARE
 Route::group(['middleware' => ['auth:sanctum']], function(){
-   
     Route::get('/reported-incidents',[IncidentController::class, 'reportedIncidents']);
     Route::post('/incident-update-status',[IncidentController::class, 'updateStatus']);
     Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
+    Route::post('/update-incident',[IncidentController::class, 'updateIncidentDetails']);
+    Route::get('/get-incident-details',[IncidentController::class, 'getIncidentDetails']);
+    Route::post('change-pass', [AuthController::class, 'change_pass']);
 
 
 });

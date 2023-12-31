@@ -156,6 +156,16 @@ class AuthController extends Controller
     
     }
 
+    public function change_pass (Request $request){
+        $user = User::find($request->id);
+        if(!$user){
+            return response() -> json(["msg"=>"User not found"],404);
+        }
+        $user->password = bcrypt($request->password);
+        $user->save();
+        return $user;
+    }
+
     public function checkEmailResetPassword(Request $request) {
         $email = $request->email;
         $emailWithResetToken =  DB::table('password_resets')->where('email', $email)->first();
@@ -181,7 +191,9 @@ class AuthController extends Controller
 
     public function updateUser(Request $request){
         $user = User::find($request->id);
-           $user->name = $request->name;
+        if(!$user){
+            return response() -> json(["msg"=>"User not found"],404);
+        }
            $user->email = $request->email;
            $user->info = json_encode($request->info);
            $path = null;

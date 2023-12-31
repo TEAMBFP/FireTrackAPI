@@ -18,9 +18,10 @@ return new class extends Migration
             $table->integer('user_id');
             $table->string('type');
             $table->string('location');
-            $table->longtext('image');
+            $table->string('station');
+            $table->string('image');
             $table->string('status')->default('pending');
-            $table->string('casualties')->nullable();   
+            $table->json('casualties')->nullable();   
             $table->integer('estimate_damage')->nullable();
             $table->timestamps();
         });

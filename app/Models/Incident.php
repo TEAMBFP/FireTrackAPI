@@ -13,9 +13,14 @@ class Incident extends Model
         'user_id', 
         'type',
         'location',
+        'station',
         'image',
         'status',
         'casualties',
         'estimate_damage',
     ];
+
+    protected $casts = [
+    'created_at' => 'datetime:m/d/Y H:i:s',
+];
 }

@@ -6,6 +6,7 @@ use App\Models\Incident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
+use App\Models\IncidentDetails;
 
 
 
@@ -31,8 +32,8 @@ class IncidentController extends Controller
         return $incidents;
     }
 
-    public function reportedIncidents () {
-        $incidents = Incident::orderBy('created_at', 'desc')->get();
+    public function reportedIncidents (Request $request) {
+        $incidents = Incident::where('location', 'LIKE', '%' . $request->search . '%')->orderBy('created_at', 'desc')->get();
         $incidents->map(function($incident){
             unset($incident['user_id']);
             return $incident;
@@ -64,6 +65,7 @@ class IncidentController extends Controller
         $incident->user_id = $request->user_id;
         $incident->type = $request->type;
         $incident->location = $request->location;
+        $incident->station = $request->station;
         $path = null;
         if ($request->image) {
             $image = $request->image;
@@ -79,6 +81,29 @@ class IncidentController extends Controller
         }
         $incident->image = $path;
         $incident->save();
+        return $incident;
+    }
+
+    public function getIncidentDetails(Request $request){
+        $id = $request->id; 
+        $incident = IncidentDetails::where('incident_id', $id)->first();
+        $incident->responder = json_decode($incident->responder);
+        $incident->incident = json_decode($incident->incident);
+        $incident->status = json_decode($incident->status);
+        return $incident;
+    }
+
+    public function updateIncidentDetails (Request $request){
+        $incident = IncidentDetails::firstOrNew(['incident_id'=>$request->id]);
+        $incident->incident_id = $request->id;
+        $incident->responder =  $request->responder;
+        $incident->incident = $request->incident;
+        $incident->status = $request->status;
+        $incident->save();
+        $incident->responder = json_decode($incident->responder);
+        $incident->incident = json_decode($incident->incident);
+        $incident->status = json_decode($incident->status);
+
         return $incident;
     }
 

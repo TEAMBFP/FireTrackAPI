@@ -25,6 +25,7 @@ class IncidentController extends Controller
 
         $incidents->map(function($incident){
             unset($incident['user_id']);
+            $incident->image = url($incident->image);
             return $incident;
         });
         return $incidents;
@@ -36,6 +37,7 @@ class IncidentController extends Controller
         $incidents = Incident::where('location', 'LIKE', '%' . $request->search . '%')->orderBy('created_at', 'desc')->get();
         $incidents->map(function($incident){
             unset($incident['user_id']);
+            $incident->image = url($incident->image);
             return $incident;
         });
         return $incidents;
@@ -76,7 +78,7 @@ class IncidentController extends Controller
 
             $imageName = 'incident-'.Str::random(10).'.'.'jpg';
             Storage::disk('public')->put($imageName, base64_decode($image));
-            $path = url('/').'/storage/'.$imageName;
+            $path = '/storage/'.$imageName;
 
         }
         $incident->image = $path;

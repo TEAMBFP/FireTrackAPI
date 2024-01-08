@@ -7,6 +7,9 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\FireStationController;
+use App\Http\Controllers\FireTypeController;
+use App\Http\Controllers\FireStatusController;
 
 
 
@@ -70,6 +73,26 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/update-incident',[IncidentController::class, 'updateIncidentDetails']);
     Route::get('/get-incident-details',[IncidentController::class, 'getIncidentDetails']);
     Route::post('change-pass', [AuthController::class, 'change_pass']);
+
+    //FireStationController
+    Route::get('/firestations', [FireStationController::class, 'index']);
+    Route::post('/create-firestation', [FireStationController::class, 'create']);
+    Route::post('/update-firestation', [FireStationController::class, 'update']);
+    Route::post('/delete-firestation', [FireStationController::class, 'delete']);
+
+    //FireTypeController
+    Route::get('/get-fire-types', [FireTypeController::class,'fireTypes']);
+    Route::get('/get-fire-type-name', [FireTypeController::class,'fireTypeName']);
+    Route::post('/create-fire-type', [FireTypeController::class,'create']);
+    Route::post('/update-fire-type', [FireTypeController::class,'update']);
+    Route::post('/delete-fire-type', [FireTypeController::class,'delete']);
+    Route::get('/fire-types', [FireTypeController::class,'index']);
+
+    //FireStatusController
+    Route::get('/fire-status', [FireStatusController::class,'index']);
+    Route::post('/create-fire-status', [FireStatusController::class,'create']);
+    Route::post('/update-fire-status', [FireStatusController::class,'update']);
+    Route::post('/delete-fire-status', [FireStatusController::class,'delete']);
 
 
 });

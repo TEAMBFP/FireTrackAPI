@@ -13,12 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('incidents', function (Blueprint $table) {
+        Schema::create('fire_statuses', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->string('location');
-            $table->string('station');
-            $table->string('image');
+            $table->string('status');
             $table->timestamps();
         });
     }
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('incidents');
+        Schema::dropIfExists('fire_statuses');
     }
 };

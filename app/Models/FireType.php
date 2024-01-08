@@ -5,19 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Incident extends Model
+class FireType extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'user_id', 
+        'name',
         'type',
-        'location',
-        'station',
-        'image',
     ];
-
-    protected $casts = [
-    'created_at' => 'datetime:m/d/Y H:i:s',
-];
 }

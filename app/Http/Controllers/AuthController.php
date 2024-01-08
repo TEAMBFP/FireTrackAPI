@@ -60,6 +60,7 @@ class AuthController extends Controller
             'user_type' => 'admin',
             'info' => json_encode($request->info),
         ]);
+        $user->info = json_decode($user->info);
         return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
     }
     
@@ -81,6 +82,10 @@ class AuthController extends Controller
 
         unset($user['code']);
         $user->info = json_decode($user->info);
+
+        if($user->image){
+            $user->image = url($user->image);
+        }
      
         return ['token'=>$user->createToken('auth_token')->plainTextToken, 'user'=>$user];
        
@@ -102,6 +107,9 @@ class AuthController extends Controller
 
         unset($user['code']);
         $user->info = json_decode($user->info);
+        if($user->image){
+            $user->image = url($user->image);
+        }
      
         return ['token'=>$user->createToken('auth_token')->plainTextToken, 'user'=>$user];
        
@@ -186,7 +194,11 @@ class AuthController extends Controller
 
     public function user()
     {
-        return $user = Auth::user();
+         $user = Auth::user();
+         if($user->image){
+            $user->image = url($user->image);
+         }
+         return $user;
     }
 
     public function updateUser(Request $request){
@@ -209,11 +221,12 @@ class AuthController extends Controller
 
                 $imageName = $user->email.'-profile'.'.'.$ext;
                 Storage::disk('public')->put($imageName, base64_decode($image));
-                $path = url('/').'/storage/'.$imageName;
+                $path = '/storage/'.$imageName;
 
             }
            $user->image = $path ? $path : $request->image;
            $user->save();
+           $user->image = url($user->image);
            $user->info = $request->info;
            
         return $user;

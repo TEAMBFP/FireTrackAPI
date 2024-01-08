@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
 use App\Models\IncidentDetails;
+use App\Models\FireStatus;
 
 
 
@@ -26,21 +27,89 @@ class IncidentController extends Controller
         $incidents->map(function($incident){
             unset($incident['user_id']);
             $incident->image = url($incident->image);
+            $details = IncidentDetails::where('incident_id', $incident->id)->first();
+            $status = FireStatus::find(json_decode($details->status)->status);
+            if($details && $status){
+                $incident->status = $status->status;
+            }
             return $incident;
         });
         return $incidents;
         
-        return $incidents;
     }
 
     public function reportedIncidents (Request $request) {
-        $incidents = Incident::where('location', 'LIKE', '%' . $request->search . '%')->orderBy('created_at', 'desc')->get();
+
+        if($request->filter){
+            $incidentDetails = IncidentDetails::where('incident->type->name', $request->filter)->orderBy('created_at', 'desc')->get();
+            $array = [];
+
+            foreach ($incidentDetails as $key => $incidentDetail) {
+                $incidents = Incident::where('id', $incidentDetail->incident_id)->orderBy('created_at', 'desc')->get();
+                if($incidents){
+                    foreach ($incidents as $key => $incident) {
+                        unset($incident['user_id']);
+                        $incident->image = url($incident->image);
+
+                        $details = IncidentDetails::where('incident_id', $incident->id)->first();
+                
+                    
+                        if($details){
+
+                            if($details->incident){
+                                $incident->type = json_decode($details->incident)->type;
+                            }
+
+                            if($details->status){
+                                $details->status = json_decode($details->status);
+                            }
+
+                            $status = FireStatus::find($details->status->status);
+
+                            if($status){
+                                $incident->status = $status->status;
+                            }
+                        }
+                        array_push($array, $incident);
+
+                    };
+                }
+            }
+
+            return $array;
+
+        }
+
+        $incidents = Incident::orderBy('created_at', 'desc')->get();
         $incidents->map(function($incident){
             unset($incident['user_id']);
             $incident->image = url($incident->image);
+
+            $details = IncidentDetails::where('incident_id', $incident->id)->first();
+          
+            
+            if($details){
+
+                if($details->incident){
+                    $incident->type = json_decode($details->incident)->type;
+                }
+
+                if($details->status){
+                    $details->status = json_decode($details->status);
+                }
+
+                $status = FireStatus::find($details->status->status);
+
+                if($status){
+                    $incident->status = $status->status;
+                }
+            }
+          
             return $incident;
         });
+
         return $incidents;
+       
     }
 
      public function updateStatus (Request $request){
@@ -65,7 +134,6 @@ class IncidentController extends Controller
     {
         $incident = new Incident();
         $incident->user_id = $request->user_id;
-        $incident->type = $request->type;
         $incident->location = $request->location;
         $incident->station = $request->station;
         $path = null;
@@ -83,15 +151,24 @@ class IncidentController extends Controller
         }
         $incident->image = $path;
         $incident->save();
+        $details = new IncidentDetails();
+        $details->incident_id = $incident->id;
+        $details->status = json_encode(['status'=> 1]);
+        $details->save();
         return $incident;
     }
 
     public function getIncidentDetails(Request $request){
         $id = $request->id; 
         $incident = IncidentDetails::where('incident_id', $id)->first();
-        $incident->responder = json_decode($incident->responder);
-        $incident->incident = json_decode($incident->incident);
-        $incident->status = json_decode($incident->status);
+            if($incident){
+                $incident->responder = json_decode($incident->responder);
+                $incident->incident = json_decode($incident->incident);
+                $incident->status = json_decode($incident->status);
+                $incident->fireStatus =  FireStatus::get();
+            }
+      
+        
         return $incident;
     }
 

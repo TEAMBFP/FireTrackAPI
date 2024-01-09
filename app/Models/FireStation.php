@@ -14,5 +14,6 @@ class FireStation extends Model
         'latitude',
         'longitude',
         'number',
+        'district'
     ];
 }

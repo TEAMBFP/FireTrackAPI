@@ -40,45 +40,41 @@ class IncidentController extends Controller
 
     public function reportedIncidents (Request $request) {
 
-        if($request->filter){
-            $incidentDetails = IncidentDetails::where('incident->type->name', $request->filter)->orderBy('created_at', 'desc')->get();
-            $array = [];
+        if($request->station){
+            
+            $incidents = Incident::where('station', $request->station)->orderBy('created_at', 'desc')->get();
+            if($incidents){
+                $incidents->map(function($incident){
+                    unset($incident['user_id']);
+                    $incident->image = url($incident->image);
 
-            foreach ($incidentDetails as $key => $incidentDetail) {
-                $incidents = Incident::where('id', $incidentDetail->incident_id)->orderBy('created_at', 'desc')->get();
-                if($incidents){
-                    foreach ($incidents as $key => $incident) {
-                        unset($incident['user_id']);
-                        $incident->image = url($incident->image);
-
-                        $details = IncidentDetails::where('incident_id', $incident->id)->first();
+                    $details = IncidentDetails::where('incident_id', $incident->id)->first();
+            
                 
-                    
-                        if($details){
+                    if($details){
 
-                            if($details->incident){
-                                $incident->type = json_decode($details->incident)->type;
-                            }
-
-                            if($details->status){
-                                $details->status = json_decode($details->status);
-                            }
-
-                            $status = FireStatus::find($details->status->status);
-
-                            if($status){
-                                $incident->status = $status->status;
-                            }
+                        if($details->incident){
+                            $incident->type = json_decode($details->incident)->type;
                         }
-                        array_push($array, $incident);
 
-                    };
-                }
+                        if($details->status){
+                            $details->status = json_decode($details->status);
+                        }
+
+                        $status = FireStatus::find($details->status->status);
+
+                        if($status){
+                            $incident->status = $status->status;
+                        }
+                    }
+                    return $incident;
+
+                });
+
             }
-
-            return $array;
-
+            return $incidents;
         }
+        
 
         $incidents = Incident::orderBy('created_at', 'desc')->get();
         $incidents->map(function($incident){

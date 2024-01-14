@@ -10,6 +10,7 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\FireStationController;
 use App\Http\Controllers\FireTypeController;
 use App\Http\Controllers\FireStatusController;
+use App\Http\Controllers\DistrictsController;
 
 
 
@@ -94,5 +95,14 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/update-fire-status', [FireStatusController::class,'update']);
     Route::post('/delete-fire-status', [FireStatusController::class,'delete']);
 
-
+    // DistrictsController
+    Route::get('/districts', [DistrictsController::class, 'index']);
+    Route::post('/create-district', [DistrictsController::class, 'create']);
+    Route::post('/update-district', [DistrictsController::class, 'update']);
+    Route::post('/delete-district', [DistrictsController::class, 'delete']);
+    
 });
+
+Route::get('/districts', [DistrictsController::class, 'index']);
+Route::get('/firestations', [FireStationController::class, 'index']);
+

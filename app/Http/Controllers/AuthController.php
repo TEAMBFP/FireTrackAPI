@@ -166,6 +166,10 @@ class AuthController extends Controller
 
     public function change_pass (Request $request){
         $user = User::find($request->id);
+
+        if(!Hash::check($request->current_password, $user->password)){
+            return response() -> json(["msg"=>"Current password is incorrect"],400);
+        }
         if(!$user){
             return response() -> json(["msg"=>"User not found"],404);
         }

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
 use App\Models\IncidentDetails;
 use App\Models\FireStatus;
+use Carbon\Carbon;
+
 
 
 
@@ -132,6 +134,14 @@ class IncidentController extends Controller
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
         $incident->station = $request->station;
+
+        $check = Incident::whereDate('created_at', Carbon::today())
+            ->where('user_id', $request->user_id)
+            ->where('location', $request->location)
+            ->first();
+        if($check){
+            return response()->json(['msg'=>'You have already reported this incident'], 400);
+        }
         $path = null;
         if ($request->image) {
             $image = $request->image;

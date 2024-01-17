@@ -15,6 +15,7 @@ class Incident extends Model
         'location',
         'station',
         'image',
+        'barangay',
     ];
 
     protected $casts = [

@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
 use App\Models\IncidentDetails;
 use App\Models\FireStatus;
+use App\Models\FireType;
 use Carbon\Carbon;
+use App\Events\IncidentReported;
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -42,65 +45,50 @@ class IncidentController extends Controller
 
     public function reportedIncidents (Request $request) {
 
-        if($request->station){
-            
-            $incidents = Incident::where('station', $request->station)->orderBy('created_at', 'desc')->get();
-            if($incidents){
-                $incidents->map(function($incident){
-                    unset($incident['user_id']);
-                    $incident->image = url($incident->image);
+        $query = "
+        SELECT * FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at) ORDER BY created_at DESC) as rn
+            FROM incidents
+        ) t
+        WHERE t.rn = 1";
 
-                    $details = IncidentDetails::where('incident_id', $incident->id)->first();
-            
-                
-                    if($details){
-
-                        if($details->incident){
-                            $incident->type = json_decode($details->incident)->type;
-                        }
-
-                        if($details->status){
-                            $details->status = json_decode($details->status);
-                        }
-
-                        $status = FireStatus::find($details->status->status);
-
-                        if($status){
-                            $incident->status = $status->status;
-                        }
-                    }
-                    return $incident;
-
-                });
-
-            }
-            return $incidents;
+        if ($request->month) {
+            $query .= " AND MONTH(created_at) = " . $request->month;
         }
-        
 
-        $incidents = Incident::orderBy('created_at', 'desc')->get();
-        $incidents->map(function($incident){
-            unset($incident['user_id']);
+        if ($request->year) {
+            $query .= " AND YEAR(created_at) = " . $request->year;
+        }
+
+        if ($request->station) {
+            $query .= " AND station = '" . $request->station . "'";
+        }
+
+        $incidents = collect(DB::select($query));
+
+   
+        $incidents->transform(function($incident){
+            unset($incident->user_id);
             $incident->image = url($incident->image);
 
             $details = IncidentDetails::where('incident_id', $incident->id)->first();
           
             
             if($details){
+                $type = json_decode($details->incident)?->type;
+                $status = json_decode($details->status)?->status;
 
-                if($details->incident){
-                    $incident->type = json_decode($details->incident)->type;
+
+                if($type){
+                    $findType = FireType::find($type);
+                    $incident->type = $findType?->name;
                 }
-
-                if($details->status){
-                    $details->status = json_decode($details->status);
-                }
-
-                $status = FireStatus::find($details->status->status);
 
                 if($status){
-                    $incident->status = $status->status;
+                    $findStatus = FireStatus::find($status);
+                    $incident->status = $findStatus?->status;
                 }
+               
             }
           
             return $incident;
@@ -133,6 +121,7 @@ class IncidentController extends Controller
         $incident = new Incident();
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
+        $incident->barangay = $request->barangay;
         $incident->station = $request->station;
 
         $check = Incident::whereDate('created_at', Carbon::today())
@@ -161,6 +150,7 @@ class IncidentController extends Controller
         $details->incident_id = $incident->id;
         $details->status = json_encode(['status'=> 1]);
         $details->save();
+        event(new IncidentReported('New incident reported'));
         return $incident;
     }
 

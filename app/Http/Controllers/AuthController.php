@@ -76,9 +76,6 @@ class AuthController extends Controller
             ]);
         }
 
-        if($user->user_type=='admin'){
-            return response()->json(["message" => 'You are not allowed to login here'],404);
-        }
 
         unset($user['code']);
         $user->info = json_decode($user->info);

@@ -11,6 +11,7 @@ use App\Http\Controllers\FireStationController;
 use App\Http\Controllers\FireTypeController;
 use App\Http\Controllers\FireStatusController;
 use App\Http\Controllers\DistrictsController;
+use App\Http\Controllers\NotificationController;
 
 
 
@@ -100,6 +101,9 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/create-district', [DistrictsController::class, 'create']);
     Route::post('/update-district', [DistrictsController::class, 'update']);
     Route::post('/delete-district', [DistrictsController::class, 'delete']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/mark-as-read-notif', [NotificationController::class, 'markAsRead']);
     
 });
 

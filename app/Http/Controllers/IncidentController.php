@@ -12,6 +12,7 @@ use App\Models\FireType;
 use Carbon\Carbon;
 use App\Events\IncidentReported;
 use Illuminate\Support\Facades\DB;
+use App\Models\Notification;
 
 
 
@@ -150,7 +151,12 @@ class IncidentController extends Controller
         $details->incident_id = $incident->id;
         $details->status = json_encode(['status'=> 1]);
         $details->save();
-        event(new IncidentReported('New incident reported'));
+
+        $notification = new Notification();
+        $notification->incident_id = $incident->id;
+        $notification->message = 'New incident in '.$incident->barangay.'.'.' reported by '.auth()->user()->name;
+        $notification->save();
+        event(new IncidentReported('New incident reported by '.auth()->user()->name));
         return $incident;
     }
 

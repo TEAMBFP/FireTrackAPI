@@ -1,4 +1,11 @@
 <p>{{$message}}</p>
 <script>
-setTimeout(()=>{window.close()}, 2000);
+setInterval(function() {
+        '{{$message}}'==="Successfully verified" && '{{!$user}}'?
+            window.location.replace(`http://localhost:5173/register/additional_info`)
+        :
+            window.close()
+    }, 1000);
 </script>
+
+

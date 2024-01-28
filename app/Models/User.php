@@ -18,13 +18,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'firstname',
+        'lastname',
         'email',
         'password',
         'info',
         'code',
         'image',
-        'user_type'
+        'user_type_id'
     ];
 
     /**
@@ -45,4 +46,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function userType()
+{
+    return $this->belongsTo(UserType::class);
+}
 }

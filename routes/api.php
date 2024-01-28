@@ -12,6 +12,8 @@ use App\Http\Controllers\FireTypeController;
 use App\Http\Controllers\FireStatusController;
 use App\Http\Controllers\DistrictsController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\UserTypeController;
+use App\Http\Controllers\EmployeeController;
 
 
 
@@ -35,6 +37,7 @@ Route::controller(AuthController::class)->group(function () {
     // ADMIN AUTH
     Route::post('/admin-login', 'adminLogin');
     Route::post('/admin-register','adminRegister');
+    Route::post('/additional_info', 'add_additional_info');
 });
 
 Route::post('/reset-pass', [ResetPasswordController::class, 'request_reset']);
@@ -57,6 +60,9 @@ Route::get('/email/verify/resend', function (Request $request) {
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user =  $request->user();
+    if($user->image){
+        $user->image = url($user->image);
+    }
     $user->info = json_decode($user->info);
     return $user;
 });
@@ -104,9 +110,18 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/mark-as-read-notif', [NotificationController::class, 'markAsRead']);
+
+    Route::get('/employee', [EmployeeController::class, 'index']);
+    Route::post('/delete-employee', [EmployeeController::class, 'delete']);
+    Route::post('/update-employee', [EmployeeController::class, 'update']);
+
+    Route::post('/create-user-type', [UserTypeController::class, 'create']);
+    Route::post('/update-user-type', [UserTypeController::class, 'edit']);
+    Route::post('/delete-user-type', [UserTypeController::class, 'delete']);
+
     
 });
 
 Route::get('/districts', [DistrictsController::class, 'index']);
 Route::get('/firestations', [FireStationController::class, 'index']);
-
+Route::get('/user-types', [UserTypeController::class, 'index']);

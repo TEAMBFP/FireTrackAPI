@@ -13,12 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table
-                ->integer('user_type_id')
-                ->nullable()
-                ->after('password');
-                
+        Schema::create('user_types', function (Blueprint $table) {
+            $table->id();
+            $table->string("name");
+            $table->timestamps();
         });
     }
 
@@ -29,10 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-                
-                // Remove the column
-                $table->dropColumn('user_type');
-        });
+        Schema::dropIfExists('user_types');
     }
 };

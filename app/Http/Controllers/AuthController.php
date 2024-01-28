@@ -26,18 +26,18 @@ class AuthController extends Controller
    
     public function register(Request $request)
     {
-        // defaults to user, requests here coming from mobile app
-        // if($request->type){
-        //     response()->json(["msg" => 'Not Found'],404);
-        // }
+       
          $request->validate([
             'email' => 'required|email|max:50|unique:users',
-            'name'=>'required|max:50',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
+            'firstname' => 'required',
+            'lastname' => 'required',
         ]);
         $user = User::create([
-            'name' => $request->name,
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
             'email' => $request->email,
+            'user_type_id' => '4',
             'password' => bcrypt($request->password),
             'info' => json_encode($request->info),
         ]);
@@ -50,18 +50,36 @@ class AuthController extends Controller
        
          $request->validate([
             'email' => 'required|email|max:50|unique:users',
-            'name' => 'required|max:50',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
+            'firstname' => 'required',
+            'lastname' => 'required',
         ]);
         $user = User::create([
-            'name' => $request->name,
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'user_type' => 'admin',
+            'user_type_id' => $request->user_type_id,
             'info' => json_encode($request->info),
         ]);
         $user->info = json_decode($user->info);
+        event(new Registered($user));
+        return [ "user"=>$user];
+    }
+
+    public function add_additional_info(Request $request){
+        $request->validate([
+            'user_type_id' => 'required|exists:user_types,id'
+        ]);
+        $user = User::find($request->id);
+        if(!$user){
+            return response() -> json(["msg"=>"User not found"],404);
+        }
+        $user->user_type_id = $request->user_type_id;
+        $user->info = json_encode($request->info);
+        $user->save();
         return ['token' =>  $user->createToken('auth_token')->plainTextToken, "user"=>$user];
+        
     }
     
 
@@ -76,21 +94,27 @@ class AuthController extends Controller
             ]);
         }
 
+        if($user->email_verified_at == null){
+            return response()->json(["message" => 'Please verify your email'],404);
+        };
+
 
         unset($user['code']);
         $user->info = json_decode($user->info);
-
-        if($user->image){
-            $user->image = url($user->image);
-        }
-     
+        $user->image = url($user->image);
+        
         return ['token'=>$user->createToken('auth_token')->plainTextToken, 'user'=>$user];
        
     }
 
     public function adminLogin(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
         $user = User::where('email', $request->email)->first();
+        
       
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -98,9 +122,13 @@ class AuthController extends Controller
             ]);
         }
 
-        if($user->user_type=='user'){
+        if($user->user_type_id===4){
             return response()->json(["message" => 'You are not allowed to login here'],404);
         }
+
+        if($user->email_verified_at == null){
+            return response()->json(["message" => 'Please verify your email'],404);
+        };
 
         unset($user['code']);
         $user->info = json_decode($user->info);
@@ -208,6 +236,8 @@ class AuthController extends Controller
             return response() -> json(["msg"=>"User not found"],404);
         }
            $user->email = $request->email;
+           $user->firstname = $request->firstname;
+           $user->lastname = $request->lastname;
            $user->info = json_encode($request->info);
            $path = null;
             if ($request->image && strpos($request->image, 'data:image/') !== false) {

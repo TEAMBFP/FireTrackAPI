@@ -26,7 +26,8 @@ class VerifyEmailController extends Controller
         }
 
         return view('partials.page', [
-                    'message' => 'Successfully verified'
-                ]);
+                    'message' => 'Successfully verified',
+                    'user' => $user->user_type_id === 4 ? true : false,
+        ]);
     }
 }

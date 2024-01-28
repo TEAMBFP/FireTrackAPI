@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             FireTypeSeeder::class,
             FireStatusSeeder::class,
             DistrictsSeeder::class,
+            UserTypeSeeder::class,
         ]);
     }
 }

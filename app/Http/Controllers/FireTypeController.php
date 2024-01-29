@@ -34,11 +34,9 @@ class FireTypeController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'type' => 'required'
         ]);
         $fireType = FireType::create([
             'name' => $request->name,
-            'type' => $request->type
         ]);
 
         return $fireType;
@@ -47,12 +45,10 @@ class FireTypeController extends Controller
     public function update(Request $request){
         $request->validate([
             'name' => 'required',
-            'type' => 'required'
         ]);
 
         $fireType = FireType::find($request->id);
         $fireType->name = $request->name;
-        $fireType->type = $request->type;
         $fireType->save();
         return $fireType;
     }

@@ -130,6 +130,11 @@ class AuthController extends Controller
             return response()->json(["message" => 'Please verify your email'],404);
         };
 
+        if(!$user->user_type_id && $user->email_verified_at !== null){
+            $user->info = json_decode($user->info);
+            return ['user'=>$user];
+        }
+
         unset($user['code']);
         $user->info = json_decode($user->info);
         if($user->image){

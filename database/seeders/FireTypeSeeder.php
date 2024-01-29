@@ -17,32 +17,15 @@ class FireTypeSeeder extends Seeder
     {
         $types = [
             ## STRUCTURAL
-            ['name'=> 'Assembly', 'type'=> 'Structural'],
-            ['name'=> 'Educational', 'type'=> 'Structural'],
-            ['name'=> 'Day Care', 'type'=> 'Structural'],
-            ['name'=> 'Health Care', 'type'=> 'Structural'],
-            ['name'=> 'Residential Board and Care', 'type'=> 'Structural'],
-            ['name'=> 'Detention and Correctional', 'type'=> 'Structural'],
-            ['name'=> 'Residential', 'type'=> 'Structural'],
-            ['name'=> 'Mercantile', 'type'=>'Structural'],
-            ['name'=> 'Business', 'type'=>'Structural'],
-            ['name'=> 'Industrial', 'type'=> 'Structural'],
-            ['name'=> 'Storage', 'type'=> 'Structural'],
-            ['name'=> 'Mixed Occupancies', 'type'=> 'Structural'],
-            ['name'=> 'Special Structures', 'type'=> 'Structural'],
+            ['name'=> 'Structural'],
             ## NON-STRUCTURAL
-            ['name'=> 'Grass', 'type'=> 'Non-Structural'],
-            ['name'=> 'Agricultural(Agro)', 'type'=> 'Non-Structural'],
-            ['name'=> 'Rubbish', 'type'=> 'Non-Structural'],
-            ['name'=> 'Post', 'type'=>'Non-Structural'],
-            ['name'=> 'Forest', 'type'=>'Non-Structural'],
+            ['name'=>'Non-Structural'],
             ## VEHICULAR
-            ['name'=> 'Motor Vehicle', 'type'=> 'Vehicular'],
-            ['name'=> 'Ship/Water Vessel', 'type'=> 'Vehicular'],
-            ['name'=> 'Air Craft', 'type'=> 'Vehicular'],
-            ['name'=> 'Locomotive', 'type'=> 'Vehicular']
-
+            ['name'=> 'Vehicular']
         ];
-        DB::table ('fire_types')->insert( $types);
+
+     
+        DB::table ('fire_types')->insert($types);
+       
     }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\DistrictsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserTypeController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\FireOccupancyController;
 
 
 
@@ -118,6 +119,11 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/create-user-type', [UserTypeController::class, 'create']);
     Route::post('/update-user-type', [UserTypeController::class, 'edit']);
     Route::post('/delete-user-type', [UserTypeController::class, 'delete']);
+
+    Route::get('/fire-occupancies', [FireOccupancyController::class, 'index']);
+    Route::post('/create-fire-occupancy', [FireOccupancyController::class, 'create']);
+    Route::post('/update-fire-occupancy', [FireOccupancyController::class, 'update']);
+    Route::post('/delete-fire-occupancy', [FireOccupancyController::class, 'delete']);
 
     
 });

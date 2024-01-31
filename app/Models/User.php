@@ -48,7 +48,12 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     public function userType()
-{
-    return $this->belongsTo(UserType::class);
-}
+    {
+        return $this->belongsTo(UserType::class );
+    }
+
+   public function district()
+   {
+         return $this->belongsTo(Districts::class);
+   }
 }

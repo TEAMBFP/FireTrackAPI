@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage; // Add this import statement
 
 
 
+
 class AuthController extends Controller
 {
     
@@ -74,6 +75,9 @@ class AuthController extends Controller
         $user = User::find($request->id);
         if(!$user){
             return response() -> json(["msg"=>"User not found"],404);
+        }
+        if(intval($request->user_type_id) === 2){
+           $district = DB::table('districts')->where('id', $request->info['district_id'])->update(['user_id' => $user->id]);
         }
         $user->user_type_id = $request->user_type_id;
         $user->info = json_encode($request->info);

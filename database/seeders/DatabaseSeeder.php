@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             DistrictsSeeder::class,
             UserTypeSeeder::class,
             FireOccupancySeeder::class,
+            RegionSeeder::class,
         ]);
     }
 }

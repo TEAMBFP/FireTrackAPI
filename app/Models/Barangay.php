@@ -5,18 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FireStation extends Model
+class Barangay extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
+        "name",
         'address',
-        'latitude',
-        'longitude',
-        'number',
-        'district_id'
+        'contact_number',
+        'fire_station_id',
+        'district_id',
+        'region_id'
     ];
+
+    public function fireStation()
+    {
+        return $this->belongsTo(FireStation::class);
+    }
 
     public function district()
     {
@@ -25,7 +30,6 @@ class FireStation extends Model
 
     public function region()
     {
-        return $this->district->region;
+        return $this->belongsTo(Region::class);
     }
 }
-

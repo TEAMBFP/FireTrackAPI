@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('fire_stations', function (Blueprint $table) {
-            $table->string('district')->after('address');
+            // $table->string('district')->after('address');
         });
     }
 
@@ -27,7 +27,7 @@ return new class extends Migration
     {
         Schema::table('fire_stations', function (Blueprint $table) {
             //
-            $table->dropColumn('district');
+            // $table->dropColumn('district');
         });
     }
-};
+}; 

@@ -10,7 +10,17 @@ class DistrictsController extends Controller
    
     public function index()
     {
-        $districts = Districts::all();
+        $districts = Districts::with('region')->with('user')->get();
+        foreach($districts as $district){
+            if($district->region){
+                 $district->region_name = $district->region->name;
+            }
+           
+            if($district->user){
+                $district->district_head = $district->user->firstname . " " . $district->user->lastname;
+            }
+            
+        }
         return $districts;
     }
 
@@ -19,6 +29,9 @@ class DistrictsController extends Controller
     {
         $districts = new Districts;
         $districts->name = $request->name;
+        $districts->user_id = $request->user_id;
+        $districts->post_code = $request->post_code;
+        $districts->region_id = $request->region_id;
         $districts->save();
         return $districts;
     }
@@ -27,6 +40,9 @@ class DistrictsController extends Controller
     {
         $districts = Districts::find($request->id);
         $districts->name = $request->name;
+        $districts->user_id = $request->user_id;
+        $districts->post_code = $request->post_code;
+        $districts->region_id = $request->region_id;
         $districts->save();
         return $districts;
     }

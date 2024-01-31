@@ -15,6 +15,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserTypeController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FireOccupancyController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\BarangayController;
+
 
 
 
@@ -125,6 +128,15 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/update-fire-occupancy', [FireOccupancyController::class, 'update']);
     Route::post('/delete-fire-occupancy', [FireOccupancyController::class, 'delete']);
 
+    Route::get('/regions', [RegionController::class, 'index']);
+    Route::post('/create-region', [RegionController::class, 'create']);
+    Route::post('/update-region', [RegionController::class, 'update']);
+    Route::post('/delete-region', [RegionController::class, 'delete']);
+
+    Route::get('/barangays', [BarangayController::class, 'index']); 
+    Route::post('/create-barangay', [BarangayController::class, 'create']);
+    Route::post('/update-barangay', [BarangayController::class, 'update']);
+    Route::post('/delete-barangay', [BarangayController::class, 'delete']);
     
 });
 

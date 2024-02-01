@@ -188,59 +188,11 @@ class IncidentController extends Controller
         return $incident;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+   public function getDataSet(){
+        $data = DB::table('incident_datasets')->first();
+        $data->datasets = json_decode($data->datasets);
+        return $data;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Incident  $incident
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Incident $incident)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Incident  $incident
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Incident $incident)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Incident  $incident
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Incident $incident)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Incident  $incident
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Incident $incident)
-    {
-        //
-    }
+   
 }

@@ -143,3 +143,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 Route::get('/districts', [DistrictsController::class, 'index']);
 Route::get('/firestations', [FireStationController::class, 'index']);
 Route::get('/user-types', [UserTypeController::class, 'index']);
+
+
+Route::get('/datasets', [IncidentController::class, 'getDataSet']);

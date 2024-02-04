@@ -118,7 +118,7 @@ class IncidentDataSet extends Seeder
                         $data->barangay = $value[0];
                         $data->created_at = Carbon::create($col, rand(1, 12), rand(1, 28));
                         $data->location = $value[0].', Cagayan de Oro City';
-                        $data->station = 'NA';
+                        $data->fire_station_id = 0;
                         $data->save();
            
                     }

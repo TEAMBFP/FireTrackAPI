@@ -13,12 +13,22 @@ class Incident extends Model
         'user_id', 
         'type',
         'location',
-        'station',
+        'fire_station_id',
         'image',
         'barangay',
     ];
 
     protected $casts = [
-    'created_at' => 'datetime:m/d/Y H:i:s',
-];
+        'created_at' => 'datetime:m/d/Y H:i:s',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function station()
+    {
+        return $this->belongsTo(FireStation::class);
+    }
 }

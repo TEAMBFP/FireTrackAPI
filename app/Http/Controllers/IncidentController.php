@@ -61,9 +61,11 @@ class IncidentController extends Controller
             $query .= " AND YEAR(created_at) = " . $request->year;
         }
 
-        if ($request->station) {
-            $query .= " AND station = '" . $request->station . "'";
+        if ($request->fire_station_id) {
+            $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
         }
+        $query = $query . " ORDER BY created_at DESC";
+      
 
         $incidents = collect(DB::select($query));
 
@@ -123,7 +125,7 @@ class IncidentController extends Controller
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
         $incident->barangay = $request->barangay;
-        $incident->station = $request->station;
+        $incident->fire_station_id = $request->fire_station_id;
 
         $check = Incident::whereDate('created_at', Carbon::today())
             ->where('user_id', $request->user_id)

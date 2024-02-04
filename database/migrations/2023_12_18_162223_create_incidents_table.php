@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id');
             $table->string('location');
-            $table->string('station');
+            $table->integer('fire_station_id');
             $table->string('image');
             $table->timestamps();
         });

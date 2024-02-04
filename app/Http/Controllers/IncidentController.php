@@ -48,7 +48,7 @@ class IncidentController extends Controller
 
         $query = "
         SELECT * FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at) ORDER BY created_at DESC) as rn
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at DESC) as rn
             FROM incidents
         ) t
         WHERE t.rn = 1";
@@ -188,11 +188,39 @@ class IncidentController extends Controller
         return $incident;
     }
 
-   public function getDataSet(){
-        $data = DB::table('incident_datasets')->first();
-        $data->datasets = json_decode($data->datasets);
+  public function getDataSet(){
+    $incidents = DB::table('incidents')
+        ->select(DB::raw('YEAR(created_at) as year'), 'barangay', DB::raw('COUNT(*) as count'))
+        ->groupBy('year', 'barangay')
+        ->get();
+
+    $years = [
+        2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023,
+    ];
+
+
+    $incidents = $incidents->groupBy('barangay')->map(function($incident) use ($years){
+        $data = [];
+        foreach ($years as $year) {
+            $data[$year] = 0;
+        }
+        foreach ($incident as $value) {
+            $data[$value->year] = $value->count;
+            $data['barangay'] = $value->barangay;
+        }
         return $data;
+    });
+
+    $incident = $incidents->values()->toArray();
+   
+    
+
+    return $incident;
     }
+
+
+
+
 
    
 }

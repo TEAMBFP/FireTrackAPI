@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Incident;
+use Carbon\Carbon;
 
 class IncidentDataSet extends Seeder
 {
@@ -15,11 +17,7 @@ class IncidentDataSet extends Seeder
      */
     public function run()
     {
-           $cols = [
-                'barangay', 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023
-            ];
-          
-        $values = [
+           $values = [
             ["1",1,0,1,2,2,0,2,3,1,1,0,0,0,0,0,],
             ["2",1,0,1,0,0,0,0,1,0,2,0,0,0,0,0,],
             ["3",0,0,0,0,1,0,4,0,1,0,0,0,0,0,0,],
@@ -106,15 +104,26 @@ class IncidentDataSet extends Seeder
             ["Pres. Roxas St.",1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
         ];
 
-        $data = [];
-        $counts = [];
-
-        foreach($values as $key => $value){
-            array_push($counts, ['count'=>count($value), 'index' => $key]);
-            $data[] = array_combine($cols, $value);
+         $cols = [
+                 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023
+            ];
+        $test = [];
+        foreach ($values as  $value) {
+            foreach ($cols as $key => $col) {
+                if($value[$key+1] > 0){
+                    for ($i=0; $i < $value[$key+1]; $i++) { 
+                        $data = new Incident();
+                        $data->image = 'NA';
+                        $data->user_id = 0;
+                        $data->barangay = $value[0];
+                        $data->created_at = Carbon::create($col, rand(1, 12), rand(1, 28));
+                        $data->location = $value[0].', Cagayan de Oro City';
+                        $data->station = 'NA';
+                        $data->save();
+           
+                    }
+                }  
+            }
         }
-       
-
-        DB::table('incident_datasets')->insert(['datasets'=>json_encode($data)]);
     }
 }

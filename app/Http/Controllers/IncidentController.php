@@ -13,7 +13,7 @@ use Carbon\Carbon;
 use App\Events\IncidentReported;
 use Illuminate\Support\Facades\DB;
 use App\Models\Notification;
-
+use App\Models\FireStation;
 
 
 
@@ -75,7 +75,8 @@ class IncidentController extends Controller
             $incident->image = url($incident->image);
 
             $details = IncidentDetails::where('incident_id', $incident->id)->first();
-          
+            $fireStation = FireStation::find($incident->fire_station_id);
+            $incident->station = $fireStation?->name;
             
             if($details){
                 $type = json_decode($details->incident)?->type;

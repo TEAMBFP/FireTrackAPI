@@ -121,6 +121,10 @@ class IncidentController extends Controller
      */
     public function create(Request  $request)
     {
+        $request->validate([
+            'barangay' => 'required',
+        ]);
+
         $incident = new Incident();
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
@@ -156,9 +160,9 @@ class IncidentController extends Controller
 
         $notification = new Notification();
         $notification->incident_id = $incident->id;
-        $notification->message = 'New incident in '.$incident->barangay.'.'.' reported by '.auth()->user()->name;
+        $notification->message = 'New incident reported by '.auth()->user()->firstname.' '. auth()->user()->lastname. ' in '.$incident->barangay;
         $notification->save();
-        event(new IncidentReported('New incident reported by '.auth()->user()->name));
+        event(new IncidentReported($notification->message));
         return $incident;
     }
 

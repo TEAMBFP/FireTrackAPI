@@ -34,7 +34,7 @@ class NotificationController extends Controller
         $notification->status = 1;
         $notification->save();
         $incident->image = url($incident->image);
-        $incident->reporter = $user->name;
+        $incident->reporter = $user->firstname . ' ' . $user->lastname;
         return $incident;
         
     }

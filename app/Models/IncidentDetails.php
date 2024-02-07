@@ -14,4 +14,9 @@ class IncidentDetails extends Model
         'incident',
         'status',
     ];
+
+    public function details()
+    {
+        return $this->belongsTo(Incident::class);
+    }
 }

@@ -31,4 +31,9 @@ class Incident extends Model
     {
         return $this->belongsTo(FireStation::class);
     }
+
+    public function details()
+    {
+        return $this->hasOne(IncidentDetails::class);
+    }
 }

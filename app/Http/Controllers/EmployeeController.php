@@ -38,7 +38,7 @@ class EmployeeController extends Controller
             $info = json_decode($employee->info);
             $employee->position = $employee->userType->name;
             if($info){
-                $employee->contact_number = $info?->phone_no;
+                $employee->contact_number = $info->phone_no ?? null;
             }
             
         }

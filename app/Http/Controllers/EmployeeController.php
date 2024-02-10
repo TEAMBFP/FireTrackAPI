@@ -36,7 +36,7 @@ class EmployeeController extends Controller
         $employees = $employees->get();
         foreach($employees as $employee){
             $employee->position = $employee->userType->name;
-            $employee->contact_number = json_decode($employee->info)->phone_no;
+            $employee->contact_number = json_decode($employee->info)?->phone_no;
         }
        return $employees;
     }

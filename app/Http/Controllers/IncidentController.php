@@ -14,6 +14,8 @@ use App\Events\IncidentReported;
 use Illuminate\Support\Facades\DB;
 use App\Models\Notification;
 use App\Models\FireStation;
+use App\Models\User;
+use App\Models\AlarmLevel;
 
 
 
@@ -48,7 +50,8 @@ class IncidentController extends Controller
 
         $query = "
         SELECT * FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at DESC) as rn
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
+                COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
             FROM incidents
         ) t
         WHERE t.rn = 1";
@@ -69,10 +72,14 @@ class IncidentController extends Controller
 
         $incidents = collect(DB::select($query));
 
-   
+
         $incidents->transform(function($incident){
-            unset($incident->user_id);
+            // unset($incident->user_id);
             $incident->image = url($incident->image);
+            $user = User::find($incident->user_id);
+            if($user){
+                $incident->informat = $user->firstname.' '.$user->lastname;
+            }
 
             $details = IncidentDetails::where('incident_id', $incident->id)->first();
             $fireStation = FireStation::find($incident->fire_station_id);
@@ -82,10 +89,8 @@ class IncidentController extends Controller
                 $type = json_decode($details->incident)?->type;
                 $status = json_decode($details->status)?->status;
 
-
                 if($type){
-                    $findType = FireType::find($type);
-                    $incident->type = $findType?->name;
+                    $incident->type = $type;
                 }
 
                 if($status){
@@ -94,6 +99,7 @@ class IncidentController extends Controller
                 }
                
             }
+            $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
           
             return $incident;
         });
@@ -175,6 +181,7 @@ class IncidentController extends Controller
                 $incident->incident = json_decode($incident->incident);
                 $incident->status = json_decode($incident->status);
                 $incident->fireStatus =  FireStatus::get();
+                $incident->alarm_level_id =  Incident::find($incident->incident_id)->alarm_level_id;
             }
       
         
@@ -183,15 +190,17 @@ class IncidentController extends Controller
 
     public function updateIncidentDetails (Request $request){
         $incident = IncidentDetails::firstOrNew(['incident_id'=>$request->id]);
-        $incident->incident_id = $request->id;
         $incident->responder =  $request->responder;
         $incident->incident = $request->incident;
         $incident->status = $request->status;
+        if($request->alarm_level_id){
+            Incident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
+        }
         $incident->save();
         $incident->responder = json_decode($incident->responder);
         $incident->incident = json_decode($incident->incident);
         $incident->status = json_decode($incident->status);
-
+        $incident->alarm_level_id = $request->alarm_level_id;
         return $incident;
     }
 

@@ -10,11 +10,19 @@ class Region extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'address',
+        'contact',
+        'user_id'
     ];
 
     public function districts()
     {
         return $this->hasMany(District::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

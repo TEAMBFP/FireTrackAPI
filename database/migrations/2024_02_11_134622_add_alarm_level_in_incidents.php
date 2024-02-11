@@ -13,13 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('regions', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('address')->nullable();
-            $table->string('contact')->nullable();
-            $table->string('user_id')->nullable();
-            $table->timestamps();
+        Schema::table('incidents', function (Blueprint $table) {
+            $table->integer('alarm_level_id')->nullable();
         });
     }
 
@@ -30,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('regions');
+        Schema::table('incidents', function (Blueprint $table) {
+            $table->dropColumn('alarm_level_id');
+        });
     }
 };

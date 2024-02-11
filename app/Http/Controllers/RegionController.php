@@ -10,17 +10,25 @@ class RegionController extends Controller
   
     public function index()
     {
-        $regions = Region::get();
+        $regions = Region::with('user')->get();
+        foreach($regions as $region){
+            if($region->user){
+                $region->office_head = $region->user->firstname . " " . $region->user->lastname;
+            }
+        }
         return $regions;
     }
 
 
     public function create(Request $request)
     {
-        $regions = new Region;
-        $regions->name = $request->name;
-        $regions->save();
-        return $regions;
+        $region = new Region;
+        $region->name = $request->name;
+        $region->address = $request->address;
+        $region->contact = $request->contact;
+        $region->user_id = $request->user_id;
+        $region->save();
+        return $region;
     }
 
 
@@ -28,6 +36,9 @@ class RegionController extends Controller
     {
         $regions = Region::find($request->id);
         $regions->name = $request->name;
+        $regions->address = $request->address;
+        $regions->contact = $request->contact;
+        $regions->user_id = $request->user_id;
         $regions->save();
         return $regions;
     }

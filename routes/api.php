@@ -17,6 +17,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FireOccupancyController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\BarangayController;
+use App\Http\Controllers\AlarmLevelController;
 
 
 
@@ -137,6 +138,12 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/create-barangay', [BarangayController::class, 'create']);
     Route::post('/update-barangay', [BarangayController::class, 'update']);
     Route::post('/delete-barangay', [BarangayController::class, 'delete']);
+
+    Route::get('alarm-levels', [AlarmLevelController::class, 'index']);
+    Route::post('create-alarm-level', [AlarmLevelController::class, 'create']);
+    Route::post('update-alarm-level', [AlarmLevelController::class, 'update']);
+    Route::post('delete-alarm-level', [AlarmLevelController::class, 'delete']);
+
     
 });
 

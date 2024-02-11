@@ -18,6 +18,7 @@ class FireStatusSeeder extends Seeder
     {
         $status = [
             ['status'=> 'pending'],
+            ['status'=> 'acknowledged'],
             ['status'=> 'ongoing'],
             ['status'=> 'done'],
         ];

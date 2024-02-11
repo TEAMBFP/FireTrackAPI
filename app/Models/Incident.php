@@ -16,6 +16,7 @@ class Incident extends Model
         'fire_station_id',
         'image',
         'barangay',
+        'alarm_level_id'
     ];
 
     protected $casts = [
@@ -35,5 +36,10 @@ class Incident extends Model
     public function details()
     {
         return $this->hasOne(IncidentDetails::class);
+    }
+
+    public function alarmLevel()
+    {
+        return $this->belongsTo(AlarmLevel::class);
     }
 }

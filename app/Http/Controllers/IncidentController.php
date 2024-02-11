@@ -33,8 +33,11 @@ class IncidentController extends Controller
             ->get();
 
         $incidents->map(function($incident){
-            unset($incident['user_id']);
             $incident->image = url($incident->image);
+            $user = User::find($incident->user_id);
+            if($user){
+                $incident->informat = $user->firstname.' '.$user->lastname;
+            }
             $details = IncidentDetails::where('incident_id', $incident->id)->first();
             $status = FireStatus::find(json_decode($details->status)->status);
             if($details && $status){

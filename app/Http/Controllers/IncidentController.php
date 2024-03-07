@@ -195,7 +195,13 @@ class IncidentController extends Controller
         $incident = IncidentDetails::firstOrNew(['incident_id'=>$request->id]);
         $incident->responder =  $request->responder;
         $incident->incident = $request->incident;
-        $incident->status = $request->status;
+        $status = json_decode($request->status);
+        if($status->status !== 1){
+            $status->departure_time = Carbon::now();
+            $incident->status = json_encode($status);
+        }else{
+            $incident->status = $request->status;
+        }
         if($request->alarm_level_id){
             Incident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
         }

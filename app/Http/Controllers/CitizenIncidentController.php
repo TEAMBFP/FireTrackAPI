@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Incident;
+use App\Models\CitizenIncident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
@@ -19,7 +19,7 @@ use App\Models\AlarmLevel;
 
 
 
-class IncidentController extends Controller
+class CitizenIncidentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -28,7 +28,7 @@ class IncidentController extends Controller
      */
     public function my_report_incident()
     {
-        $incidents = Incident::where('user_id', auth()->user()->id)
+        $incidents = CitizenIncident::where('user_id', auth()->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -47,78 +47,6 @@ class IncidentController extends Controller
         });
         return $incidents;
         
-    }
-
-    public function reportedIncidents (Request $request) {
-
-        $query = "
-            SELECT * FROM (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
-                    COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
-                FROM incidents
-            ) t
-            WHERE t.rn = 1";
-
-        if ($request->month) {
-            $query .= " AND MONTH(created_at) = " . $request->month;
-        }
-
-        if ($request->year) {
-            $query .= " AND YEAR(created_at) = " . $request->year;
-        }
-        if ($request->time) {
-            $query .= " AND TIME(created_at) = " . $request->time;
-        }
-
-        if ($request->fire_station_id) {
-            $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
-        }
-        $query = $query . " ORDER BY created_at DESC";
-      
-
-        $incidents = collect(DB::select($query));
-
-
-        $incidents->transform(function($incident){
-            // unset($incident->user_id);
-            $incident->image = url($incident->image);
-            $user = User::find($incident->user_id);
-            if($user){
-                $incident->informat = $user->firstname.' '.$user->lastname;
-            }
-
-            $details = IncidentDetails::where('incident_id', $incident->id)->first();
-            $fireStation = FireStation::find($incident->fire_station_id);
-            $incident->station = $fireStation?->name;
-            
-            if($details){
-                $type = json_decode($details->incident)?->type;
-                $deaths = json_decode($details->incident)?->fatality;
-                $injured = json_decode($details->incident)?->injured;
-                $damages = json_decode($details->incident)?->damages;
-                $status = json_decode($details->status)?->status;
-                
-
-                $incident->fatality = $deaths ?? null;
-                $incident->injury = $injured ?? null;
-                $incident->damages = $damages ?? null;
-                if($type){
-                    $incident->type = $type;
-                }
-
-                if($status){
-                    $findStatus = FireStatus::find($status);
-                    $incident->status = $findStatus?->status;
-                }
-               
-            }
-            $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
-          
-            return $incident;
-        });
-
-        return $incidents;
-       
     }
 
     public function citizenIncidents (Request $request){
@@ -178,16 +106,15 @@ class IncidentController extends Controller
         return $incidents;
     }
 
-
      public function updateStatus (Request $request){
-        $incident = Incident::find($request->id);
+        $incident = CitizenIncident::find($request->id);
         $incident->status = $request->status;
         $incident->save();
         return $incident;
      }
 
      public function deleteIncidenet (Request $request){
-        $incident = Incident::find($request->id);
+        $incident = CitizenIncident::find($request->id);
         $incident->delete();
         return $incident;
      }
@@ -200,16 +127,16 @@ class IncidentController extends Controller
     public function create(Request  $request)
     {
         $request->validate([
-            'barangay' => '',
+            'barangay' => 'required',
         ]);
 
-        $incident = new Incident();
+        $incident = new CitizenIncident();
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
         $incident->barangay = $request->barangay;
         $incident->fire_station_id = $request->fire_station_id;
 
-        $check = Incident::whereDate('created_at', Carbon::today())
+        $check = CitizenIncident::whereDate('created_at', Carbon::today())
             ->where('user_id', $request->user_id)
             ->where('location', $request->location)
             ->first();
@@ -252,7 +179,7 @@ class IncidentController extends Controller
                 $incident->incident = json_decode($incident->incident);
                 $incident->status = json_decode($incident->status);
                 $incident->fireStatus =  FireStatus::get();
-                $incident->alarm_level_id = Incident::find($incident->incident_id)->alarm_level_id;
+                $incident->alarm_level_id =  CitizenIncident::find($incident->incident_id)->alarm_level_id;
             }
       
         
@@ -265,7 +192,7 @@ class IncidentController extends Controller
         $incident->incident = $request->incident;
         $incident->status = $request->status;
         if($request->alarm_level_id){
-            Incident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
+            CitizenIncident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
         }
         $incident->save();
         $incident->responder = json_decode($incident->responder);

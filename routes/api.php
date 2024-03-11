@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CitizenIncidentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -80,6 +81,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 });
 // TBD ADMIN MIDDLEWARE
 Route::group(['middleware' => ['auth:sanctum']], function(){
+    Route::get('/citizen-incident', [CitizenIncidentController::class, 'citizenIncidents']);
     Route::get('/reported-incidents',[IncidentController::class, 'reportedIncidents']);
     Route::post('/incident-update-status',[IncidentController::class, 'updateStatus']);
     Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
@@ -153,3 +155,4 @@ Route::get('/user-types', [UserTypeController::class, 'index']);
 
 
 Route::get('/datasets', [IncidentController::class, 'getDataSet']);
+

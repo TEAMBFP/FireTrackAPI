@@ -96,15 +96,15 @@ class IncidentController extends Controller
             
             if($details){
                 $type = json_decode($details->incident)?->type;
-                $deaths = json_decode($details->incident)?->fatality;
-                $injured = json_decode($details->incident)?->injured;
-                $damages = json_decode($details->incident)?->damages;
+                // $deaths = json_decode($details->incident)?->fatality;
+                // $injured = json_decode($details->incident)?->injured;
+                // $damages = json_decode($details->incident)?->damages;
                 $status = json_decode($details->status)?->status;
                 
 
-                $incident->fatality = $deaths ?? null;
-                $incident->injury = $injured ?? null;
-                $incident->damages = $damages ?? null;
+                // $incident->fatality = $deaths ?? null;
+                // $incident->injury = $injured ?? null;
+                // $incident->damages = $damages ?? null;
                 if($type){
                     $incident->type = $type;
                 }

@@ -16,6 +16,9 @@ use App\Models\Notification;
 use App\Models\FireStation;
 use App\Models\User;
 use App\Models\AlarmLevel;
+use Illuminate\Support\Facades\Auth;
+use OwenIt\Auditing\Models\Audit;
+
 
 
 
@@ -165,6 +168,8 @@ class IncidentController extends Controller
         $incident->save();
         $details = new IncidentDetails();
         $details->incident_id = $incident->id;
+        $details->responder = json_encode(["date" => Carbon::now() , "team"=> "", "involved"=> "", "commander"=> "admin admin"]);
+        $details->incident = json_encode(["type" => "", "cause" => "", "damage" => "", "injuries" => "", "fatalities" => "", "remarks" => ""]);
         $details->status = json_encode(['status'=> 1]);
         $details->save();
 
@@ -196,8 +201,8 @@ class IncidentController extends Controller
         $incident->responder =  $request->responder;
         $incident->incident = $request->incident;
         $status = json_decode($request->status);
-        if($status->status !== 1){
-            $status->departure_time = Carbon::now();
+        if($status->status === 2){
+            $status->departure_time = Carbon::now()->startOfMinute();
             $incident->status = json_encode($status);
         }else{
             $incident->status = $request->status;
@@ -244,8 +249,41 @@ class IncidentController extends Controller
     }
 
 
+    public function getIncidentLogs () {
+        $audits = Audit::all();
+        foreach ($audits as $audit) {
+           $user  = User::with('userType')->where('id', $audit->user_id)->first();
+            if($user){
+               $audit->user = $user->firstname.' '.$user->lastname;
+            }else{
+                $audit->user = 'N/A';
+            }
+          
+            $new_status = json_decode($audit->new_values['status']);
+            if(isset($audit->old_values['incident']) &&
+                isset($audit->old_values['responder']) &&
+                isset($audit->old_values['status'])){
+                $old_status = json_decode($audit->old_values['status']);
+                $old_status->status = FireStatus::find(json_decode($audit->old_values['status'])->status)->status;
 
 
+                $audit->old_values = [
+                    'incident' => json_decode($audit->old_values['incident']),
+                    'responder' => json_decode($audit->old_values['responder']),
+                    'status' => $old_status ,
+                ];
 
+            }
+         
+                $new_status->status = FireStatus::find(json_decode($audit->new_values['status'])->status)->status;
+                $audit->new_values = [
+                    'incident' => json_decode($audit->new_values['incident']),
+                    'responder' => json_decode($audit->new_values['responder']),
+                    'status' => $new_status,
+                ];
+        
+        }
+        return $audits;
+    }
    
 }

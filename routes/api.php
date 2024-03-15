@@ -61,9 +61,9 @@ Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, '__invoke
 Route::get('/email/verify/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return ['message'=> 'Verification link sent!'];
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+})->middleware(['auth:api', 'throttle:6,1'])->name('verification.send');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user =  $request->user();
     if($user->image){
         $user->image = url($user->image);
@@ -72,14 +72,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $user;
 });
 // TBD USER MIDDLEWARE
-Route::group(['middleware' => ['auth:sanctum']], function(){
+Route::group(['middleware' => ['auth:api']], function(){
     Route::get('/logout',[AuthController::class, 'logout']);
     Route::post('/update-user',[AuthController::class, 'updateUser']);
     Route::post('/report-incident',[IncidentController::class, 'create']);
     Route::get('/my-incidents',[IncidentController::class, 'my_report_incident']);
 });
 // TBD ADMIN MIDDLEWARE
-Route::group(['middleware' => ['auth:sanctum']], function(){
+Route::group(['middleware' => ['auth:api']], function(){
     Route::get('/reported-incidents',[IncidentController::class, 'reportedIncidents']);
     Route::post('/incident-update-status',[IncidentController::class, 'updateStatus']);
     Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
@@ -153,3 +153,5 @@ Route::get('/user-types', [UserTypeController::class, 'index']);
 
 
 Route::get('/datasets', [IncidentController::class, 'getDataSet']);
+
+Route::get('/incident-logs', [IncidentController::class, 'getIncidentLogs']);

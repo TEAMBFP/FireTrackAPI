@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Incident;
+use App\Models\CitizenIncident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Add this import statement
 use Illuminate\Support\Str;
@@ -16,13 +16,10 @@ use App\Models\Notification;
 use App\Models\FireStation;
 use App\Models\User;
 use App\Models\AlarmLevel;
-use Illuminate\Support\Facades\Auth;
-use OwenIt\Auditing\Models\Audit;
 
 
 
-
-class IncidentController extends Controller
+class CitizenIncidentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -31,7 +28,7 @@ class IncidentController extends Controller
      */
     public function my_report_incident()
     {
-        $incidents = Incident::where('user_id', auth()->user()->id)
+        $incidents = CitizenIncident::where('user_id', auth()->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -50,78 +47,6 @@ class IncidentController extends Controller
         });
         return $incidents;
         
-    }
-
-    public function reportedIncidents (Request $request) {
-
-        $query = "
-            SELECT * FROM (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
-                    COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
-                FROM incidents
-            ) t
-            WHERE t.rn = 1";
-
-        if ($request->month) {
-            $query .= " AND MONTH(created_at) = " . $request->month;
-        }
-
-        if ($request->year) {
-            $query .= " AND YEAR(created_at) = " . $request->year;
-        }
-        if ($request->time) {
-            $query .= " AND TIME(created_at) = " . $request->time;
-        }
-
-        if ($request->fire_station_id) {
-            $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
-        }
-        $query = $query . " ORDER BY created_at DESC";
-      
-
-        $incidents = collect(DB::select($query));
-
-
-        $incidents->transform(function($incident){
-            // unset($incident->user_id);
-            $incident->image = url($incident->image);
-            $user = User::find($incident->user_id);
-            if($user){
-                $incident->informat = $user->firstname.' '.$user->lastname;
-            }
-
-            $details = IncidentDetails::where('incident_id', $incident->id)->first();
-            $fireStation = FireStation::find($incident->fire_station_id);
-            $incident->station = $fireStation?->name;
-            
-            if($details){
-                $type = json_decode($details->incident)?->type;
-                $deaths = json_decode($details->incident)?->fatality;
-                $injured = json_decode($details->incident)?->injured;
-                $damages = json_decode($details->incident)?->damages;
-                $status = json_decode($details->status)?->status;
-                
-
-                $incident->fatality = $deaths ?? null;
-                $incident->injury = $injured ?? null;
-                $incident->damages = $damages ?? null;
-                if($type){
-                    $incident->type = $type;
-                }
-
-                if($status){
-                    $findStatus = FireStatus::find($status);
-                    $incident->status = $findStatus?->status;
-                }
-               
-            }
-            $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
-          
-            return $incident;
-        });
-
-        return $incidents;
-       
     }
 
     public function citizenIncidents (Request $request){
@@ -181,16 +106,15 @@ class IncidentController extends Controller
         return $incidents;
     }
 
-
      public function updateStatus (Request $request){
-        $incident = Incident::find($request->id);
+        $incident = CitizenIncident::find($request->id);
         $incident->status = $request->status;
         $incident->save();
         return $incident;
      }
 
      public function deleteIncidenet (Request $request){
-        $incident = Incident::find($request->id);
+        $incident = CitizenIncident::find($request->id);
         $incident->delete();
         return $incident;
      }
@@ -203,16 +127,16 @@ class IncidentController extends Controller
     public function create(Request  $request)
     {
         $request->validate([
-            'barangay' => '',
+            'barangay' => 'required',
         ]);
 
-        $incident = new Incident();
+        $incident = new CitizenIncident();
         $incident->user_id = $request->user_id;
         $incident->location = $request->location;
         $incident->barangay = $request->barangay;
         $incident->fire_station_id = $request->fire_station_id;
 
-        $check = Incident::whereDate('created_at', Carbon::today())
+        $check = CitizenIncident::whereDate('created_at', Carbon::today())
             ->where('user_id', $request->user_id)
             ->where('location', $request->location)
             ->first();
@@ -236,8 +160,6 @@ class IncidentController extends Controller
         $incident->save();
         $details = new IncidentDetails();
         $details->incident_id = $incident->id;
-        $details->responder = json_encode(["date" => Carbon::now() , "team"=> "", "involved"=> "", "commander"=> "admin admin"]);
-        $details->incident = json_encode(["type" => "", "cause" => "", "damage" => "", "injuries" => "", "fatalities" => "", "remarks" => ""]);
         $details->status = json_encode(['status'=> 1]);
         $details->save();
 
@@ -257,7 +179,7 @@ class IncidentController extends Controller
                 $incident->incident = json_decode($incident->incident);
                 $incident->status = json_decode($incident->status);
                 $incident->fireStatus =  FireStatus::get();
-                $incident->alarm_level_id = Incident::find($incident->incident_id)->alarm_level_id;
+                $incident->alarm_level_id =  CitizenIncident::find($incident->incident_id)->alarm_level_id;
             }
       
         
@@ -268,15 +190,9 @@ class IncidentController extends Controller
         $incident = IncidentDetails::firstOrNew(['incident_id'=>$request->id]);
         $incident->responder =  $request->responder;
         $incident->incident = $request->incident;
-        $status = json_decode($request->status);
-        if($status->status === 2){
-            $status->departure_time = Carbon::now()->startOfMinute();
-            $incident->status = json_encode($status);
-        }else{
-            $incident->status = $request->status;
-        }
+        $incident->status = $request->status;
         if($request->alarm_level_id){
-            Incident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
+            CitizenIncident::find($incident->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
         }
         $incident->save();
         $incident->responder = json_decode($incident->responder);
@@ -317,41 +233,8 @@ class IncidentController extends Controller
     }
 
 
-    public function getIncidentLogs () {
-        $audits = Audit::all();
-        foreach ($audits as $audit) {
-           $user  = User::with('userType')->where('id', $audit->user_id)->first();
-            if($user){
-               $audit->user = $user->firstname.' '.$user->lastname;
-            }else{
-                $audit->user = 'N/A';
-            }
-          
-            $new_status = json_decode($audit->new_values['status']);
-            if(isset($audit->old_values['incident']) &&
-                isset($audit->old_values['responder']) &&
-                isset($audit->old_values['status'])){
-                $old_status = json_decode($audit->old_values['status']);
-                $old_status->status = FireStatus::find(json_decode($audit->old_values['status'])->status)->status;
 
 
-                $audit->old_values = [
-                    'incident' => json_decode($audit->old_values['incident']),
-                    'responder' => json_decode($audit->old_values['responder']),
-                    'status' => $old_status ,
-                ];
 
-            }
-         
-                $new_status->status = FireStatus::find(json_decode($audit->new_values['status'])->status)->status;
-                $audit->new_values = [
-                    'incident' => json_decode($audit->new_values['incident']),
-                    'responder' => json_decode($audit->new_values['responder']),
-                    'status' => $new_status,
-                ];
-        
-        }
-        return $audits;
-    }
    
 }

@@ -316,6 +316,11 @@ class IncidentController extends Controller
     return $incident;
     }
 
+    public function getIncidentByID (Request $request){
+        $incident = Incident::find($request->id);
+        $incident->details = IncidentDetails::where('incident_id', $incident->id)->first();
+        return $incident;
+    }
 
     public function getIncidentLogs () {
         $audits = Audit::all();
@@ -328,9 +333,7 @@ class IncidentController extends Controller
             }
           
             $new_status = json_decode($audit->new_values['status']);
-            if(isset($audit->old_values['incident']) &&
-                isset($audit->old_values['responder']) &&
-                isset($audit->old_values['status'])){
+            if($audit->event === 'updated'){
                 $old_status = json_decode($audit->old_values['status']);
                 $old_status->status = FireStatus::find(json_decode($audit->old_values['status'])->status)->status;
 
@@ -345,8 +348,9 @@ class IncidentController extends Controller
          
                 $new_status->status = FireStatus::find(json_decode($audit->new_values['status'])->status)->status;
                 $audit->new_values = [
-                    'incident' => json_decode($audit->new_values['incident']),
-                    'responder' => json_decode($audit->new_values['responder']),
+                    'incident_id' => $audit->new_values['incident_id'],
+                    'incident' => isset($audit->new_values['responder'])?json_decode($audit->new_values['incident']):NULL,
+                    'responder' => isset($audit->new_values['responder'])?json_decode($audit->new_values['responder']):NULL,
                     'status' => $new_status,
                 ];
         

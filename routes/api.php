@@ -157,3 +157,5 @@ Route::get('/user-types', [UserTypeController::class, 'index']);
 Route::get('/datasets', [IncidentController::class, 'getDataSet']);
 
 Route::get('/incident-logs', [IncidentController::class, 'getIncidentLogs']);
+
+Route::get('/incident-details', [IncidentController::class, 'getIncidentByID']);

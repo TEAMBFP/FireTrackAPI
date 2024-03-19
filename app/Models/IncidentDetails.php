@@ -26,27 +26,12 @@ class IncidentDetails extends Model implements Auditable
         return $this->belongsTo(Incident::class);
     }
 
-      protected static function booted()
+    public function transformAudit(array $data): array
     {
-        static::created(function ($model) {
-            $audit = new Audit([
-                'user_id' => auth()->id(),
-                'event' => 'created',
-                'auditable_id' => $model->incident_id,
-                'auditable_type' => get_class($model),
-                'old_values' => [],
-                'new_values' => $model->getAttributes(),
-                'url' => request()->fullUrl(),
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+        // Add the incident_id to the new_values
+        $data['new_values']['incident_id'] = $this->incident_id;
 
-            $audit->save();
-        });
+        return $data;
     }
 
-     public function getKeyName()
-    {
-        return 'incident_id';
-    }
 }

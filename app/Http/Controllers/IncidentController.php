@@ -331,28 +331,33 @@ class IncidentController extends Controller
             }else{
                 $audit->user = 'N/A';
             }
-          
-            $new_status = json_decode($audit->new_values['status']);
-            if($audit->event === 'updated'){
-                $old_status = json_decode($audit->old_values['status']);
-                $old_status->status = FireStatus::find(json_decode($audit->old_values['status'])->status)->status;
 
-
-                $audit->old_values = [
-                    'incident' => json_decode($audit->old_values['incident']),
-                    'responder' => json_decode($audit->old_values['responder']),
-                    'status' => $old_status ,
-                ];
-
+            $old_incident = array_key_exists('incident', $audit->old_values) ? json_decode($audit->old_values['incident']) : NULL;
+            $old_responder = array_key_exists('responder', $audit->old_values) ? json_decode($audit->old_values['responder']) : NULL;
+            $old_status = array_key_exists('status', $audit->old_values) ? json_decode($audit->old_values['status']) : NULL;
+            if($old_status){
+                $old_status->status = FireStatus::find($old_status->status)->status;
             }
-         
-                $new_status->status = FireStatus::find(json_decode($audit->new_values['status'])->status)->status;
-                $audit->new_values = [
-                    'incident_id' => $audit->new_values['incident_id'],
-                    'incident' => isset($audit->new_values['responder'])?json_decode($audit->new_values['incident']):NULL,
-                    'responder' => isset($audit->new_values['responder'])?json_decode($audit->new_values['responder']):NULL,
-                    'status' => $new_status,
-                ];
+        
+            $audit->old_values = [
+                'incident' => $old_incident,
+                'responder' => $old_responder,
+                'status' => $old_status ,
+            ];
+
+            $new_incident = array_key_exists('incident', $audit->new_values) ? json_decode($audit->new_values['incident']) : NULL;
+            $new_responder = array_key_exists('responder', $audit->new_values) ? json_decode($audit->new_values['responder']) : NULL;
+            $new_status = array_key_exists('status', $audit->new_values) ? json_decode($audit->new_values['status']) : NULL;
+            if($new_status){
+                $new_status->status = FireStatus::find($new_status->status)->status;
+            }
+            
+            $audit->new_values = [
+                'incident_id' => $audit->new_values['incident_id'],
+                'incident' => $new_incident,
+                'responder' => $new_responder,
+                'status' => $new_status,
+            ];
         
         }
         return $audits;

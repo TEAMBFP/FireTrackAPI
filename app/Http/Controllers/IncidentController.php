@@ -106,7 +106,8 @@ class IncidentController extends Controller
                 // $incident->injury = $injured ?? null;
                 // $incident->damages = $damages ?? null;
                 if($type){
-                    $incident->type = $type;
+                    $findType = FireType::find($type);
+                    $incident->type = $findType?->name;
                 }
 
                 if($status){

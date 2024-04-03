@@ -146,7 +146,9 @@ Route::group(['middleware' => ['auth:api']], function(){
     Route::post('update-alarm-level', [AlarmLevelController::class, 'update']);
     Route::post('delete-alarm-level', [AlarmLevelController::class, 'delete']);
 
-    
+    Route::get('/get-user-distance', [AuthController::class, 'getUserDistance']);
+    Route::post('set-device-token', [AuthController::class, 'setDeviceToken']);
+    Route::get('get-device-token', [AuthController::class, 'getDeviceToken']);
 });
 
 Route::get('/districts', [DistrictsController::class, 'index']);
@@ -159,3 +161,4 @@ Route::get('/datasets', [IncidentController::class, 'getDataSet']);
 Route::get('/incident-logs', [IncidentController::class, 'getIncidentLogs']);
 
 Route::get('/incident-details', [IncidentController::class, 'getIncidentByID']);
+

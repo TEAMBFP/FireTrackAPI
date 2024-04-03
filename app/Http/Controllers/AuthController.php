@@ -297,4 +297,26 @@ class AuthController extends Controller
     {
         
     }
+
+    public function getUserDistance(){
+        $user = Auth::user();
+        $users = User::where('id', '!=', $user->id)->whereNotNull('info->lat')->whereNotNull('info->long')->get();
+        foreach($users as $u){
+            $u->info = json_decode($u->info);
+            
+        }
+        return $users;
+    }
+
+    public function setDeviceToken(Request $request){
+        $user = Auth::user();
+        $user->device_token = $request->device_token;
+        $user->save();
+        return $user;
+    }
+
+    public function getDeviceToken(){
+        $user = Auth::user();
+        return $user->device_token;
+    }
 }

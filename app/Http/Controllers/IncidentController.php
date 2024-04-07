@@ -62,6 +62,19 @@ class IncidentController extends Controller
             ) t
             WHERE t.rn = 1";
 
+        if ($request->province) {
+            $province = strtolower($request->province);
+            $query .= " AND LOWER(location) LIKE '%" . $province . "%'";
+        }
+        
+        if ($request->start_month) {
+            $query .= " AND MONTH(created_at) >= " . $request->start_month;
+        }
+
+        if ($request->end_month) {
+            $query .= " AND MONTH(created_at) <= " . $request->end_month;
+        }
+
         if ($request->month) {
             $query .= " AND MONTH(created_at) = " . $request->month;
         }

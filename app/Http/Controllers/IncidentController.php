@@ -344,7 +344,7 @@ class IncidentController extends Controller
     }
 
     public function getIncidentLogs () {
-        $audits = Audit::all();
+        $audits = Audit::orderBy('id', 'DESC')->get();
         foreach ($audits as $audit) {
            $user  = User::with('userType')->where('id', $audit->user_id)->first();
             if($user){
@@ -370,7 +370,7 @@ class IncidentController extends Controller
             $new_responder = array_key_exists('responder', $audit->new_values) ? json_decode($audit->new_values['responder']) : NULL;
             $new_status = array_key_exists('status', $audit->new_values) ? json_decode($audit->new_values['status']) : NULL;
             if($new_status){
-                $new_status->status = FireStatus::find($new_status->status)->status;
+                $new_status->status = FireStatus::find($new_status->status)?->status;
             }
             
             $audit->new_values = [

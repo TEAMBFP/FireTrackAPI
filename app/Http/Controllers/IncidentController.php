@@ -75,16 +75,23 @@ class IncidentController extends Controller
             $query .= " AND MONTH(created_at) <= " . $request->end_month;
         }
 
-        if ($request->month) {
-            $query .= " AND MONTH(created_at) = " . $request->month;
+        $bindings=[];
+        if ($request->dateFilter) {
+            $dateFilter = $request->dateFilter;
+            $query .= " AND DATE(created_at) = ?";
+            $bindings[] = $dateFilter;
         }
 
-        if ($request->year) {
-            $query .= " AND YEAR(created_at) = " . $request->year;
-        }
-        if ($request->time) {
-            $query .= " AND TIME(created_at) = " . $request->time;
-        }
+        // if ($request->month) {
+        //     $query .= " AND MONTH(created_at) = " . $request->month;
+        // }
+
+        // if ($request->year) {
+        //     $query .= " AND YEAR(created_at) = " . $request->year;
+        // }
+        // if ($request->time) {
+        //     $query .= " AND TIME(created_at) = " . $request->time;
+        // }
 
         if ($request->fire_station_id) {
             $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
@@ -92,7 +99,7 @@ class IncidentController extends Controller
         $query = $query . " ORDER BY created_at DESC";
       
 
-        $incidents = collect(DB::select($query));
+        $incidents = collect(DB::select($query,$bindings));
 
 
         $incidents->transform(function($incident){
@@ -375,6 +382,55 @@ class IncidentController extends Controller
         
         }
         return $audits;
+    }
+
+    public function manualCreateIncident (Request $request) {
+        $incident = new Incident();
+        $incident->user_id = $request->user_id;
+        $incident->location = $request->location;
+        $incident->barangay = $request->barangay;
+        $incident->fire_station_id = $request->fire_station_id;
+        $incident->alarm_level_id = $request->alarm_level_id;
+
+        $check = Incident::whereDate('created_at', Carbon::today())
+            ->where('user_id', $request->user_id)
+            ->where('location', $request->location)
+            ->first();
+        if($check){
+            return response()->json(['msg'=>'You have already reported this incident'], 400);
+        }
+        $path = '';
+        if ($request->image) {
+            $image = $request->image;
+            
+            $image = str_replace('data:image/jpg;base64,', '', $image);
+            
+            $image = str_replace(' ', '+', $image);
+
+            $imageName = 'incident-'.Str::random(10).'.'.'jpg';
+            Storage::disk('public')->put($imageName, base64_decode($image));
+            $path = '/storage/'.$imageName;
+
+        }
+        $incident->image = $path;
+        $incident->save();
+     
+        // SAVE DETAILS
+        $details = new IncidentDetails();
+        $details->incident_id = $incident->id;
+        $details->responder =  $request->responder;
+        $details->incident = $request->incident;
+        $status = json_decode($request->status);
+        if($status->status === 2){
+            $status->departure_time = Carbon::now()->startOfMinute();
+            $details->status = json_encode($status);
+        }else{
+            $details->status = $request->status;
+        }
+        // if($request->alarm_level_id){
+        //     Incident::find($details->incident_id)->update(['alarm_level_id'=>$request->alarm_level_id]);
+        // }
+        $details->save();
     }
    
 }

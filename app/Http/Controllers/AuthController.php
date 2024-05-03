@@ -319,4 +319,9 @@ class AuthController extends Controller
         $user = Auth::user();
         return $user->device_token;
     }
+
+    public function getUsers(){
+        $user = User::where('user_type_id', 4)->get();
+        return $user;
+    }
 }

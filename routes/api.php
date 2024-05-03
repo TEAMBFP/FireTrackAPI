@@ -87,6 +87,7 @@ Route::group(['middleware' => ['auth:api']], function(){
     Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
     Route::post('/update-incident',[IncidentController::class, 'updateIncidentDetails']);
     Route::get('/get-incident-details',[IncidentController::class, 'getIncidentDetails']);
+    Route::post('/manual-create-incident', [IncidentController::class, 'manualCreateIncident']);
     Route::post('change-pass', [AuthController::class, 'change_pass']);
 
     //FireStationController
@@ -162,3 +163,4 @@ Route::get('/incident-logs', [IncidentController::class, 'getIncidentLogs']);
 
 Route::get('/incident-details', [IncidentController::class, 'getIncidentByID']);
 
+Route::get('get-users', [AuthController::class, 'getUsers']);

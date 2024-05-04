@@ -82,6 +82,17 @@ class IncidentController extends Controller
             $bindings[] = $dateFilter;
         }
 
+        if ($request->month) {
+            $query .= " AND MONTH(created_at) = " . $request->month;
+        }
+
+        if ($request->year) {
+            $query .= " AND YEAR(created_at) = " . $request->year;
+        }
+        if ($request->time) {
+            $query .= " AND TIME(created_at) = " . $request->time;
+        }
+
         // if ($request->month) {
         //     $query .= " AND MONTH(created_at) = " . $request->month;
         // }

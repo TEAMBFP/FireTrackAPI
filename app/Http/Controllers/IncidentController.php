@@ -407,6 +407,7 @@ class IncidentController extends Controller
         $incident->barangay = $request->barangay;
         $incident->fire_station_id = $request->fire_station_id;
         $incident->alarm_level_id = $request->alarm_level_id;
+        $incident->created_at = $request->created_at;
 
         $check = Incident::whereDate('created_at', Carbon::today())
             ->where('user_id', $request->user_id)

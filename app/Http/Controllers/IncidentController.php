@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Incident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Add this import statement
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use App\Models\IncidentDetails;
 use App\Models\FireStatus;
@@ -52,172 +53,221 @@ class IncidentController extends Controller
         
     }
 
-    public function reportedIncidents (Request $request) {
+    public function reportedIncident(Request $request)
+{
+    $perPage = 10;
+    $page = $request->get('page', 1);
+    $offset = ($page - 1) * $perPage;
 
-        $query = "
-            SELECT * FROM (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
-                    COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
-                FROM incidents
-            ) t
-            WHERE t.rn = 1";
+    $query = "
+        SELECT * FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
+            COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
+            FROM incidents
+        ) t
+        WHERE t.rn = 1";
 
-        if ($request->province) {
-            $province = strtolower($request->province);
-            $query .= " AND LOWER(location) LIKE '%" . $province . "%'";
+    if ($request->province) {
+        $province = strtolower($request->province);
+        $query .= " AND LOWER(location) LIKE '%" . $province . "%'";
+    }
+
+    if ($request->barangay) {
+        $barangay = strtolower($request->barangay);
+        $query .= " AND LOWER(barangay) LIKE '%" . $barangay . "%'";
+    }
+
+    if ($request->start_month) {
+        $query .= " AND MONTH(created_at) >= " . $request->start_month;
+    }
+
+    if ($request->end_month) {
+        $query .= " AND MONTH(created_at) <= " . $request->end_month;
+    }
+
+    $bindings = [];
+    if ($request->dateFilter) {
+        $dateFilter = $request->dateFilter;
+        $query .= " AND DATE(created_at) = ?";
+        $bindings[] = $dateFilter;
+    }
+
+    if ($request->month) {
+        $query .= " AND MONTH(created_at) = " . $request->month;
+    }
+
+    if ($request->year) {
+        $query .= " AND YEAR(created_at) = " . $request->year;
+    }
+    if ($request->time) {
+        $query .= " AND TIME(created_at) = " . $request->time;
+    }
+
+    if ($request->fire_station_id) {
+        $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
+    }
+
+    $query .= " ORDER BY created_at DESC";
+
+    // Add limit and offset for pagination
+    $paginatedQuery = $query . " LIMIT $perPage OFFSET $offset";
+
+    // Execute the paginated query
+    $incidents = collect(DB::select($paginatedQuery, $bindings));
+
+    // Get the total count of results for pagination
+    $totalIncidents = collect(DB::select("SELECT COUNT(*) as total FROM ($query) as count_query", $bindings))->first()->total;
+
+    $incidents->transform(function ($incident) {
+        $incident->image = url($incident->image);
+        $user = User::find($incident->user_id);
+        if ($user) {
+            $incident->informat = $user->firstname . ' ' . $user->lastname;
         }
 
-        if($request->barangay) {
-             $barangay = strtolower($request->barangay);
-            $query .= " AND LOWER(barangay) LIKE '%" . $barangay . "%'";
+        $details = IncidentDetails::where('incident_id', $incident->id)->first();
+        $fireStation = FireStation::find($incident->fire_station_id);
+        $incident->station = $fireStation?->name;
+
+        if ($details) {
+            $type = json_decode($details->incident)?->type;
+            $status = json_decode($details->status)?->status;
+
+            if ($type) {
+                $findType = FireType::find($type);
+                $incident->type = $findType?->name;
+            }
+
+            if ($status) {
+                $findStatus = FireStatus::find($status);
+                $incident->status = $findStatus?->status;
+            }
         }
+
+        $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
+
+        return $incident;
+    });
+
+    // Create a paginator instance
+    $paginator = new LengthAwarePaginator(
+        $incidents,
+        $totalIncidents,
+        $perPage,
+        $page,
+        ['path' => $request->url(), 'query' => $request->query()]
+    );
+
+    return $paginator;
+}
+
+public function reportedIncidents (Request $request) {
+    $query = "
+    SELECT * FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY location, DATE(created_at), barangay ORDER BY created_at ASC) as rn,
+            COUNT(*) OVER (PARTITION BY location, DATE(created_at), barangay) as count
+        FROM incidents
+    ) t
+    WHERE t.rn = 1";
+
+if ($request->province) {
+    $province = strtolower($request->province);
+    $query .= " AND LOWER(location) LIKE '%" . $province . "%'";
+}
+
+if($request->barangay) {
+     $barangay = strtolower($request->barangay);
+    $query .= " AND LOWER(barangay) LIKE '%" . $barangay . "%'";
+}
+
+if ($request->start_month) {
+    $query .= " AND MONTH(created_at) >= " . $request->start_month;
+}
+
+if ($request->end_month) {
+    $query .= " AND MONTH(created_at) <= " . $request->end_month;
+}
+
+$bindings=[];
+if ($request->dateFilter) {
+    $dateFilter = $request->dateFilter;
+    $query .= " AND DATE(created_at) = ?";
+    $bindings[] = $dateFilter;
+}
+
+if ($request->month) {
+    $query .= " AND MONTH(created_at) = " . $request->month;
+}
+
+if ($request->year) {
+    $query .= " AND YEAR(created_at) = " . $request->year;
+}
+if ($request->time) {
+    $query .= " AND TIME(created_at) = " . $request->time;
+}
+
+// if ($request->month) {
+//     $query .= " AND MONTH(created_at) = " . $request->month;
+// }
+
+// if ($request->year) {
+//     $query .= " AND YEAR(created_at) = " . $request->year;
+// }
+// if ($request->time) {
+//     $query .= " AND TIME(created_at) = " . $request->time;
+// }
+
+if ($request->fire_station_id) {
+    $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
+}
+$query = $query . " ORDER BY created_at DESC";
+
+
+$incidents = collect(DB::select($query,$bindings));
+
+
+$incidents->transform(function($incident){
+    // unset($incident->user_id);
+    $incident->image = url($incident->image);
+    $user = User::find($incident->user_id);
+    if($user){
+        $incident->informat = $user->firstname.' '.$user->lastname;
+    }
+
+    $details = IncidentDetails::where('incident_id', $incident->id)->first();
+    $fireStation = FireStation::find($incident->fire_station_id);
+    $incident->station = $fireStation?->name;
+    
+    if($details){
+        $type = json_decode($details->incident)?->type;
+        // $deaths = json_decode($details->incident)?->fatality;
+        // $injured = json_decode($details->incident)?->injured;
+        // $damages = json_decode($details->incident)?->damages;
+        $status = json_decode($details->status)?->status;
         
-        if ($request->start_month) {
-            $query .= " AND MONTH(created_at) >= " . $request->start_month;
+
+        // $incident->fatality = $deaths ?? null;
+        // $incident->injury = $injured ?? null;
+        // $incident->damages = $damages ?? null;
+        if($type){
+            $findType = FireType::find($type);
+            $incident->type = $findType?->name;
         }
 
-        if ($request->end_month) {
-            $query .= " AND MONTH(created_at) <= " . $request->end_month;
+        if($status){
+            $findStatus = FireStatus::find($status);
+            $incident->status = $findStatus?->status;
         }
-
-        $bindings=[];
-        if ($request->dateFilter) {
-            $dateFilter = $request->dateFilter;
-            $query .= " AND DATE(created_at) = ?";
-            $bindings[] = $dateFilter;
-        }
-
-        if ($request->month) {
-            $query .= " AND MONTH(created_at) = " . $request->month;
-        }
-
-        if ($request->year) {
-            $query .= " AND YEAR(created_at) = " . $request->year;
-        }
-        if ($request->time) {
-            $query .= " AND TIME(created_at) = " . $request->time;
-        }
-
-        // if ($request->month) {
-        //     $query .= " AND MONTH(created_at) = " . $request->month;
-        // }
-
-        // if ($request->year) {
-        //     $query .= " AND YEAR(created_at) = " . $request->year;
-        // }
-        // if ($request->time) {
-        //     $query .= " AND TIME(created_at) = " . $request->time;
-        // }
-
-        if ($request->fire_station_id) {
-            $query .= " AND fire_station_id = '" . $request->fire_station_id . "'";
-        }
-        $query = $query . " ORDER BY created_at DESC";
-      
-
-        $incidents = collect(DB::select($query,$bindings));
-
-
-        $incidents->transform(function($incident){
-            // unset($incident->user_id);
-            $incident->image = url($incident->image);
-            $user = User::find($incident->user_id);
-            if($user){
-                $incident->informat = $user->firstname.' '.$user->lastname;
-            }
-
-            $details = IncidentDetails::where('incident_id', $incident->id)->first();
-            $fireStation = FireStation::find($incident->fire_station_id);
-            $incident->station = $fireStation?->name;
-            
-            if($details){
-                $type = json_decode($details->incident)?->type;
-                // $deaths = json_decode($details->incident)?->fatality;
-                // $injured = json_decode($details->incident)?->injured;
-                // $damages = json_decode($details->incident)?->damages;
-                $status = json_decode($details->status)?->status;
-                
-
-                // $incident->fatality = $deaths ?? null;
-                // $incident->injury = $injured ?? null;
-                // $incident->damages = $damages ?? null;
-                if($type){
-                    $findType = FireType::find($type);
-                    $incident->type = $findType?->name;
-                }
-
-                if($status){
-                    $findStatus = FireStatus::find($status);
-                    $incident->status = $findStatus?->status;
-                }
-               
-            }
-            $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
-          
-            return $incident;
-        });
-
-        return $incidents;
        
     }
+    $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id)?->name;
+  
+    return $incident;
+});
 
-    public function citizenIncidents (Request $request){
-        $query = "SELECT * FROM incidents";
-        if ($request->month) {
-            $query .= " WHERE MONTH(created_at) = " . $request->month;
-        }
-        
-        if ($request->year) {
-            $query .= $request->month ? " AND" : " WHERE";
-            $query .= " YEAR(created_at) = " . $request->year;
-        }
-        if ($request->fire_station_id) {
-            $query .= $request->month || $request->year ? " AND" : " WHERE";
-            $query .= " fire_station_id = '" . $request->fire_station_id . "'";
-        }
-        
-        $query .= " ORDER BY created_at DESC";
-        $incidents = collect(DB::select($query));
+return $incidents;
 
-        $incidents->transform(function ($incident) {
-            $incident->image = url($incident->image);
-            $user = User::find($incident->user_id);
-
-            if ($user) {
-                $userInfo = json_decode($user->info);
-
-                if ($userInfo) {
-                    $incident->informat = $user->firstname . ' ' . $user->lastname;
-                    $incident->contactno = isset($userInfo->phone_no) ? $userInfo->phone_no : '';
-                }
-            }
-
-            $details = IncidentDetails::where('incident_id', $incident->id)->first();
-            $fireStation = FireStation::find($incident->fire_station_id);
-            $incident->station = $fireStation ?->name;
-
-            if ($details) {
-                $type = json_decode($details->incident) ?->type;
-                $status = json_decode($details->status) ?->status;
-
-                if ($type) {
-                    $incident->type = $type;
-                }
-
-                if ($status) {
-                    $findStatus = FireStatus::find($status);
-                    $incident->status = $findStatus ?->status;
-                }
-            }
-
-            $incident->alarm_level = AlarmLevel::find($incident->alarm_level_id) ?->name;
-
-            return $incident;
-        });
-
-        return $incidents;
-    }
-
+}
 
      public function updateStatus (Request $request){
         $incident = Incident::find($request->id);

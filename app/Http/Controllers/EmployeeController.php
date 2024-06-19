@@ -12,38 +12,38 @@ class EmployeeController extends Controller
     {
         $user = $request->user();
         $employees = User::with('userType')->where('email_verified_at', '!=', null);
-
-        if($user->user_type_id === 1 ){
-            $employees->whereNotNull('info->district_id');
-            
+    
+        // Allow user with user_type_id = 5 to retrieve all employees
+        if ($user->user_type_id === 5) {
+            $employees = User::with('userType');
+        } else {
+            if ($user->user_type_id === 1) {
+                $employees->whereNotNull('info->district_id');
+            }
+    
+            if ($user->user_type_id === 2 && json_decode($user->info)->district_id) {
+                $employees->where('info->district_id', json_decode($user->info)->district_id)
+                    ->whereNotNull('info->firestation_id');
+            }
+    
+            if ($user->user_type_id === 3 && json_decode($user->info)->firestation_id) {
+                $employees = User::where('user_type_id', '!=', 3)->where('info->firestation_id', json_decode($user->info)->firestation_id);
+            }
         }
-        
-        if($user->user_type_id === 2 && json_decode($user->info)->district_id){
-            $employees->where('info->district_id', json_decode($user->info)->district_id)
-            ->whereNotNull('info->firestation_id');
-        }
-
-        if($user->user_type_id === 3 && json_decode($user->info)->firestation_id){
-              $employees = User::where('user_type_id', '!=', 3)->where('info->firestation_id', json_decode($user->info)->firestation_id);
-        }
-
-        if($user->user_type_id === 5){
-            $employees = User::where('user_type_id', '!=', 5);
-        }
-
-        
-
+    
         $employees = $employees->get();
-        foreach($employees as $employee){
+    
+        foreach ($employees as $employee) {
             $info = json_decode($employee->info);
-            $employee->position = $employee->userType->name;
-            if($info){
+            $employee->position = $employee->userType->name ?? null;
+            if ($info) {
                 $employee->contact_number = $info->phone_no ?? null;
             }
-            
         }
-       return $employees;
+    
+        return $employees;
     }
+    
 
   
     public function delete (Request $request){

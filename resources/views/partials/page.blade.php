@@ -2,7 +2,7 @@
 <script>
 setInterval(function() {
         '{{$message}}'==="Successfully verified" && '{{!$user}}'?
-            window.location.replace(`http://localhost:5173/register/additional_info`)
+            window.location.replace(`http://localhost:5173/`)
         :
             window.close()
     }, 1000);

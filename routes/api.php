@@ -83,6 +83,7 @@ Route::group(['middleware' => ['auth:api']], function(){
 Route::group(['middleware' => ['auth:api']], function(){
     Route::get('/citizen-incident', [CitizenIncidentController::class, 'citizenIncidents']);
     Route::get('/reported-incidents',[IncidentController::class, 'reportedIncidents']);
+    Route::get('/reported-incident',[IncidentController::class, 'reportedIncident']);
     Route::post('/incident-update-status',[IncidentController::class, 'updateStatus']);
     Route::post('/incident-delete',[IncidentController::class, 'deleteIncidenet']);
     Route::post('/update-incident',[IncidentController::class, 'updateIncidentDetails']);
